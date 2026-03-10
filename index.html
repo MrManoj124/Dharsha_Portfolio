@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Professional Project Management Portfolio - Strategic Leader & Problem Solver">
+    <meta name="title" content="Project Manager Portfolio | Strategic Leadership">
+    <!-- Security Headers -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none';">
     <title>Project Manager Portfolio | Strategic Leadership</title>
     
     <!-- Remix Icons -->
@@ -25,6 +30,7 @@
                 <li><a href="#about">About</a></li>
                 <li><a href="#projects">Projects</a></li>
                 <li><a href="#skills">Skills</a></li>
+                <li><a href="#blog">Blog</a></li>
                 <li><a href="#certifications">Certifications</a></li>
                 <li><a href="#contact" class="cta_btn">Contact Me</a></li>
             </ul>
@@ -120,9 +126,18 @@
             <h2>Featured <span class="gradient_text">Projects</span></h2>
             <p>Explore some of my successful project management initiatives</p>
         </div>
-        <div class="projects_grid">
+        
+        <!-- Project Filter Controls -->
+        <div class="filter_controls" data-component="project-filter">
+            <button class="filter_btn active" data-filter="all">All Projects</button>
+            <button class="filter_btn" data-filter="agile">Agile/Scrum</button>
+            <button class="filter_btn" data-filter="waterfall">Waterfall</button>
+            <button class="filter_btn" data-filter="lean">Lean Six Sigma</button>
+        </div>
+        
+        <div class="projects_grid" data-component="projects-container">
             <!-- Project 1 -->
-            <div class="project_card">
+            <div class="project_card" data-category="agile">
                 <div class="project_image">
                     <i class="ri-computer-line"></i>
                 </div>
@@ -146,7 +161,7 @@
             </div>
 
             <!-- Project 2 -->
-            <div class="project_card">
+            <div class="project_card" data-category="waterfall">
                 <div class="project_image" style="background: linear-gradient(135deg, #f97316, #ec4899);">
                     <i class="ri-megaphone-line"></i>
                 </div>
@@ -168,7 +183,7 @@
             </div>
 
             <!-- Project 3 -->
-            <div class="project_card">
+            <div class="project_card" data-category="lean">
                 <div class="project_image" style="background: linear-gradient(135deg, #10b981, #3b82f6);">
                     <i class="ri-settings-3-line"></i>
                 </div>
@@ -190,7 +205,7 @@
             </div>
 
             <!-- Project 4 -->
-            <div class="project_card">
+            <div class="project_card" data-category="agile">
                 <div class="project_image" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
                     <i class="ri-rocket-line"></i>
                 </div>
@@ -368,6 +383,79 @@
         </div>
     </section>
 
+    <!-- Blog/Resources Section -->
+    <section id="blog">
+        <div class="section_header">
+            <h2>Blog & <span class="gradient_text">Resources</span></h2>
+            <p>Project Management tips, best practices, and industry insights</p>
+        </div>
+        <div class="blog_grid" data-component="blog-container">
+            <!-- Blog Post 1 -->
+            <article class="blog_card">
+                <div class="blog_image">
+                    <i class="ri-book-line"></i>
+                </div>
+                <div class="blog_content">
+                    <div class="blog_meta">
+                        <span class="blog_category">Agile</span>
+                        <span class="blog_date">Mar 10, 2026</span>
+                    </div>
+                    <h3>Mastering Agile Sprint Planning: A Complete Guide</h3>
+                    <p>Learn the essential techniques for effective sprint planning, including velocity estimation, user story refinement, and capacity planning. Discover how to set realistic sprint goals that align with business objectives.</p>
+                    <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
+                </div>
+            </article>
+
+            <!-- Blog Post 2 -->
+            <article class="blog_card">
+                <div class="blog_image" style="background: linear-gradient(135deg, #f97316, #ec4899);">
+                    <i class="ri-team-line"></i>
+                </div>
+                <div class="blog_content">
+                    <div class="blog_meta">
+                        <span class="blog_category">Leadership</span>
+                        <span class="blog_date">Mar 08, 2026</span>
+                    </div>
+                    <h3>Building High-Performance Project Teams</h3>
+                    <p>Explore strategies for recruiting, developing, and retaining top talent on your project teams. Learn about team dynamics, communication patterns, and creating a culture of accountability and collaboration.</p>
+                    <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
+                </div>
+            </article>
+
+            <!-- Blog Post 3 -->
+            <article class="blog_card">
+                <div class="blog_image" style="background: linear-gradient(135deg, #10b981, #3b82f6);">
+                    <i class="ri-alert-line"></i>
+                </div>
+                <div class="blog_content">
+                    <div class="blog_meta">
+                        <span class="blog_category">Risk Management</span>
+                        <span class="blog_date">Mar 05, 2026</span>
+                    </div>
+                    <h3>Risk Management Best Practices for Project Managers</h3>
+                    <p>Understand how to identify, assess, and mitigate project risks effectively. Learn about risk registers, mitigation strategies, and contingency planning to ensure project success even in uncertain environments.</p>
+                    <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
+                </div>
+            </article>
+
+            <!-- Blog Post 4 -->
+            <article class="blog_card">
+                <div class="blog_image" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
+                    <i class="ri-bar-chart-line"></i>
+                </div>
+                <div class="blog_content">
+                    <div class="blog_meta">
+                        <span class="blog_category">Metrics</span>
+                        <span class="blog_date">Mar 01, 2026</span>
+                    </div>
+                    <h3>Key Performance Indicators for Project Success</h3>
+                    <p>Discover essential KPIs that project managers should track, including schedule performance index, cost performance index, and stakeholder satisfaction metrics. Learn how to use data-driven insights for project optimization.</p>
+                    <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
+                </div>
+            </article>
+        </div>
+    </section>
+
     <!-- Contact Section -->
     <section id="contact">
         <div class="section_header">
@@ -375,18 +463,21 @@
             <p>Let's discuss how I can contribute to your organization's success</p>
         </div>
         <div class="contact_container">
-            <form class="contact_form" id="contact-form">
+            <form class="contact_form" id="contact-form" novalidate>
+                <!-- CSRF Token -->
+                <input type="hidden" id="csrf_token" name="csrf_token" value="">
+                
                 <div class="form_group">
                     <label for="name">Your Name</label>
-                    <input type="text" id="name" name="name" required placeholder="Dharsha Dharsh">
+                    <input type="text" id="name" name="name" required maxlength="100" placeholder="Dharsha Dharsh" autocomplete="name">
                 </div>
                 <div class="form_group">
                     <label for="email">Your Email</label>
-                    <input type="email" id="email" name="email" required placeholder="Dharsh@example.com">
+                    <input type="email" id="email" name="email" required maxlength="255" placeholder="Dharsh@example.com" autocomplete="email">
                 </div>
                 <div class="form_group">
                     <label for="message">Your Message</label>
-                    <textarea id="message" name="message" required placeholder="Tell me about your project or opportunity..."></textarea>
+                    <textarea id="message" name="message" required maxlength="5000" placeholder="Tell me about your project or opportunity..." autocomplete="off"></textarea>
                 </div>
                 <button type="submit" class="submit_btn">Send Message</button>
             </form>
