@@ -28,10 +28,23 @@ html {
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-teal) 100%);
+    background-attachment: fixed;
     color: var(--text-dark);
     overflow-x: hidden;
     line-height: 1.6;
+    min-height: 100vh;
+    padding: 3rem 1.5rem;
+}
+
+.app_container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    background-color: var(--white);
+    border-radius: 48px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
 }
 
 /* Navigation */
