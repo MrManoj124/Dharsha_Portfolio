@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Color Palette */
-    --primary-blue: #1e3a8a;
-    --primary-orange: #f97316;
-    --accent-purple: #8b5cf6;
-    --accent-pink: #ec4899;
-    --bg-light: #f8fafc;
-    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --text-dark: #1e293b;
-    --text-light: #64748b;
+    /* New Teal & Sage Color Palette */
+    --primary-teal: #2a6a77;
+    --primary-dark: #1b4954;
+    --accent-sage: #5fa8a4;
+    --accent-mint: #b6d3cc;
+    --pale-gray: #cfd7d7;
+    --bg-light: #f3f6f6;
     --white: #ffffff;
-    --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-    --card-hover-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+    --text-dark: #1b4954;
+    --text-light: #6e8488;
+    --card-shadow: 0 15px 40px rgba(42, 106, 119, 0.08);
+    --card-hover-shadow: 0 25px 60px rgba(42, 106, 119, 0.15);
     --max-width: 1200px;
 }
 
