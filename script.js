@@ -209,6 +209,7 @@ class ContactFormHandler {
         const formData = {
             name: SecurityManager.sanitizeHTML(name),
             email: SecurityManager.sanitizeHTML(email),
+            subject: "Message from Dharsha's Portfolio",
             message: SecurityManager.sanitizeHTML(message),
             csrf_token: csrfToken,
             timestamp: new Date().toISOString()
@@ -220,7 +221,7 @@ class ContactFormHandler {
         this.submitBtn.textContent = 'Sending...';
 
         try {
-            // Simulate form submission (replace with actual API endpoint)
+            // Send to backend API
             await this.submitForm(formData);
             
             showNotification('Message sent successfully! I\'ll get back to you soon.', 'success');
@@ -230,7 +231,7 @@ class ContactFormHandler {
             this.csrfTokenField.value = newToken;
             sessionStorage.setItem('csrfToken', newToken);
         } catch (error) {
-            showNotification('Failed to send message. Please try again.', 'error');
+            showNotification(error.message || 'Failed to send message. Please try again.', 'error');
         } finally {
             this.submitBtn.disabled = false;
             this.submitBtn.textContent = originalText;
@@ -238,21 +239,25 @@ class ContactFormHandler {
     }
 
     async submitForm(data) {
-        return new Promise((resolve) => {
-            // Simulate API call delay
-            setTimeout(() => {
-                // In production, send to your backend API:
-                // fetch('/api/contact', {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //         'X-CSRF-Token': data.csrf_token
-                //     },
-                //     body: JSON.stringify(data)
-                // })
-                resolve();
-            }, 1500);
+        const response = await fetch('http://localhost:5000/api/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: data.name,
+                email: data.email,
+                subject: data.subject,
+                message: data.message
+            })
         });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || 'Failed to send message. Please try again.');
+        }
+
+        return await response.json();
     }
 }
 
