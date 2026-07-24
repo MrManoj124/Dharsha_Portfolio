@@ -412,18 +412,23 @@ section {
     grid-template-columns: 1fr 2fr;
     gap: 3rem;
     align-items: center;
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .about_image {
     position: relative;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .about_image_wrapper {
     position: relative;
     border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     overflow: hidden;
     box-shadow: var(--card-shadow);
     background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    color: var(--text-dark);
     aspect-ratio: 3/4;
     display: flex;
     align-items: center;
@@ -436,6 +441,7 @@ section {
     font-weight: 700;
     margin-bottom: 1.5rem;
     color: var(--text-dark);
+    border-color: #1b4954;
 }
 
 .about_text p {
@@ -443,6 +449,7 @@ section {
     color: var(--text-light);
     margin-bottom: 1.5rem;
     line-height: 1.8;
+    border: #1b4954;
 }
 
 .about_highlights {
@@ -450,6 +457,7 @@ section {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     margin-top: 2rem;
+    border: #1b4954;
 }
 
 .highlight_item {
@@ -497,7 +505,7 @@ section {
     backdrop-filter: blur(10px);
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     transition: all 0.3s ease;
     box-shadow: var(--card-shadow);
 }
