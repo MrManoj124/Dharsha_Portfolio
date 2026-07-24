@@ -742,7 +742,7 @@ section {
     width: 100%;
     padding: 1rem 2rem;
     background: linear-gradient(135deg, var(--primary-orange), var(--accent-pink));
-    color: var(--white);
+    color: var(--text-dark);
     border: none;
     border-radius: 50px;
     font-family: 'Poppins', sans-serif;
@@ -755,7 +755,7 @@ section {
 
 .submit_btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+    box-shadow: 0 8px 25px rgba(184, 83, 10, 0.4);
 }
 
 .submit_btn:disabled {
