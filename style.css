@@ -792,7 +792,7 @@ section {
 
 .filter_btn.active {
     background: linear-gradient(135deg, var(--primary-orange), var(--accent-pink));
-    color: var(--white);
+    color: var(--text-dark);
     border-color: transparent;
     box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
 }
