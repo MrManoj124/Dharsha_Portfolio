@@ -919,11 +919,13 @@ section {
 /* Footer */
 footer {
     background: linear-gradient(135deg, var(--text-dark), var(--primary-blue));
-    color: var(--white);
+    color: var(--text-dark);
     padding: 3rem 2rem 2rem;
 }
 
 .footer_container {
+    background-color: linear-gradient(135deg, var(--text-dark), var(--primary-blue));
+    color : var(--text-dark); 
     max-width: var(--max-width);
     margin: 0 auto;
     text-align: center;
