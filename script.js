@@ -1,15 +1,20 @@
 /**
- * Portfolio Website Enhancement Script
- * Features: 
- * - Mobile-responsive navigation
- * - Project filtering by category
- * - Form validation & security (CSRF protection, input sanitization)
- * - Animations and smooth scrolling
- * - React-ready component structure for future migration
+ * Dharshana's Portfolio — Enhanced UX Script
+ * ──────────────────────────────────────────
+ * Features:
+ * - Mobile-responsive navigation with full-screen overlay
+ * - Project filtering by category with animations
+ * - Animated stats counter on scroll
+ * - Active nav link highlighting based on scroll position
+ * - Scroll-reveal animations with stagger delays
+ * - Typing animation with blinking cursor
+ * - Form validation & security (CSRF, input sanitization)
+ * - Smooth scrolling & back-to-top
+ * - Intersection Observer-based lazy animations
  */
 
 // ============================================
-// 1. PROJECT FILTERING (React-Ready Component)
+// 1. PROJECT FILTERING
 // ============================================
 class ProjectFilter {
     constructor() {
@@ -44,36 +49,26 @@ class ProjectFilter {
             const matches = this.currentFilter === 'all' || category === this.currentFilter;
             
             if (!matches) {
-                card.classList.add('hidden');
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.classList.add('hidden');
+                }, 300);
             } else {
                 card.classList.remove('hidden');
-                // Re-trigger animation
-                card.offsetHeight; // Force reflow
-                card.style.animation = 'none';
-                setTimeout(() => {
-                    card.style.animation = '';
-                }, 10);
+                requestAnimationFrame(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1)';
+                });
             }
         });
     }
-}
-
-// Initialize project filter on DOM ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        new ProjectFilter();
-    });
-} else {
-    new ProjectFilter();
 }
 
 // ============================================
 // 2. SECURITY UTILITIES
 // ============================================
 class SecurityManager {
-    /**
-     * Generate CSRF token
-     */
     static generateCSRFToken() {
         const token = Array.from(crypto.getRandomValues(new Uint8Array(32)))
             .map(b => b.toString(16).padStart(2, '0'))
@@ -81,34 +76,22 @@ class SecurityManager {
         return token;
     }
 
-    /**
-     * HTML sanitization to prevent XSS attacks
-     */
     static sanitizeHTML(str) {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
 
-    /**
-     * Validate email format
-     */
     static isValidEmail(email) {
         const emailRegex = /^[^@\s]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
         return emailRegex.test(email) && email.length <= 255;
     }
 
-    /**
-     * Validate name (alphanumeric and basic punctuation only)
-     */
     static isValidName(name) {
         const nameRegex = /^[a-zA-Z\s'-]{2,100}$/;
         return nameRegex.test(name.trim());
     }
 
-    /**
-     * Validate message length and content
-     */
     static isValidMessage(message) {
         const trimmed = message.trim();
         return trimmed.length >= 10 && trimmed.length <= 5000;
@@ -168,8 +151,10 @@ class ContactFormHandler {
 
         if (!isValid && value.length > 0) {
             field.style.borderColor = '#ef4444';
+            field.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.08)';
         } else {
             field.style.borderColor = '';
+            field.style.boxShadow = '';
         }
 
         return isValid;
@@ -189,7 +174,6 @@ class ContactFormHandler {
             return;
         }
 
-        // Validate field formats
         if (!SecurityManager.isValidName(name)) {
             showNotification('Please enter a valid name (letters, spaces, apostrophes only)', 'error');
             return;
@@ -205,7 +189,7 @@ class ContactFormHandler {
             return;
         }
 
-        // Prepare sanitized data for submission
+        // Prepare sanitized data
         const formData = {
             name: SecurityManager.sanitizeHTML(name),
             email: SecurityManager.sanitizeHTML(email),
@@ -217,16 +201,14 @@ class ContactFormHandler {
 
         // Disable submit button
         this.submitBtn.disabled = true;
-        const originalText = this.submitBtn.textContent;
-        this.submitBtn.textContent = 'Sending...';
+        const originalHTML = this.submitBtn.innerHTML;
+        this.submitBtn.innerHTML = '<span>Sending...</span> <i class="ri-loader-4-line" style="margin-left:0.5rem; animation: spin 1s linear infinite;"></i>';
 
         try {
-            // Send to backend API
             await this.submitForm(formData);
             
             showNotification('Message sent successfully! I\'ll get back to you soon.', 'success');
             this.form.reset();
-            // Generate new CSRF token
             const newToken = SecurityManager.generateCSRFToken();
             this.csrfTokenField.value = newToken;
             sessionStorage.setItem('csrfToken', newToken);
@@ -234,7 +216,7 @@ class ContactFormHandler {
             showNotification(error.message || 'Failed to send message. Please try again.', 'error');
         } finally {
             this.submitBtn.disabled = false;
-            this.submitBtn.textContent = originalText;
+            this.submitBtn.innerHTML = originalHTML;
         }
     }
 
@@ -261,28 +243,223 @@ class ContactFormHandler {
     }
 }
 
-// Initialize contact form on DOM ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        new ContactFormHandler();
-    });
-} else {
-    new ContactFormHandler();
+// ============================================
+// 4. ANIMATED STATS COUNTER
+// ============================================
+class StatsCounter {
+    constructor() {
+        this.statNumbers = document.querySelectorAll('.stat_number[data-count]');
+        this.hasAnimated = false;
+        this.init();
+    }
+
+    init() {
+        if (!this.statNumbers.length) return;
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !this.hasAnimated) {
+                    this.hasAnimated = true;
+                    this.animateAll();
+                    observer.disconnect();
+                }
+            });
+        }, { threshold: 0.3 });
+
+        // Observe the stats container
+        const statsContainer = document.querySelector('.hero_stats');
+        if (statsContainer) {
+            observer.observe(statsContainer);
+        }
+    }
+
+    animateAll() {
+        this.statNumbers.forEach((el, index) => {
+            setTimeout(() => {
+                this.animateNumber(el);
+            }, index * 150);
+        });
+    }
+
+    animateNumber(el) {
+        const target = parseInt(el.dataset.count, 10);
+        const duration = 1800;
+        const start = performance.now();
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - start;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Ease out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(eased * target);
+            
+            el.textContent = current + '+';
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
 }
 
 // ============================================
-// 4. MOBILE MENU TOGGLE
+// 5. SCROLL-REVEAL ANIMATIONS
 // ============================================
-const menuBtn = document.getElementById("menu-btn");
-const navLinks = document.getElementById("nav-links");
+class ScrollReveal {
+    constructor() {
+        this.init();
+    }
 
-if (menuBtn && navLinks) {
+    init() {
+        const revealElements = document.querySelectorAll('.reveal');
+        if (!revealElements.length) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        revealElements.forEach((el, index) => {
+            // Add stagger delay for grid items
+            const parent = el.parentElement;
+            if (parent) {
+                const siblings = Array.from(parent.children).filter(c => c.classList.contains('reveal'));
+                const siblingIndex = siblings.indexOf(el);
+                if (siblingIndex > 0 && siblingIndex <= 5) {
+                    el.classList.add(`reveal-delay-${siblingIndex}`);
+                }
+            }
+            observer.observe(el);
+        });
+    }
+}
+
+// ============================================
+// 6. ACTIVE NAV LINK HIGHLIGHTING
+// ============================================
+class ActiveNavHighlighter {
+    constructor() {
+        this.sections = document.querySelectorAll('section[id]');
+        this.navLinks = document.querySelectorAll('.nav_links a[href^="#"]');
+        this.init();
+    }
+
+    init() {
+        if (!this.sections.length || !this.navLinks.length) return;
+        
+        // Throttled scroll listener
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    this.update();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+    }
+
+    update() {
+        const scrollPos = window.scrollY + 150;
+
+        this.sections.forEach(section => {
+            const top = section.offsetTop;
+            const height = section.offsetHeight;
+            const id = section.getAttribute('id');
+
+            if (scrollPos >= top && scrollPos < top + height) {
+                this.navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${id}`) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+}
+
+// ============================================
+// 7. TYPING ANIMATION WITH CURSOR
+// ============================================
+class TypingAnimation {
+    constructor() {
+        this.tagline = document.querySelector('.hero_content .tagline');
+        this.init();
+    }
+
+    init() {
+        if (!this.tagline) return;
+
+        // Get cursor element
+        const cursor = this.tagline.querySelector('.tagline_cursor');
+        
+        // Get text content without the cursor
+        const text = Array.from(this.tagline.childNodes)
+            .filter(node => node.nodeType === Node.TEXT_NODE)
+            .map(node => node.textContent)
+            .join('');
+        
+        // Clear text but keep cursor
+        this.tagline.textContent = '';
+        if (cursor) this.tagline.appendChild(cursor);
+        this.tagline.style.opacity = '1';
+
+        let i = 0;
+        const typeWriter = () => {
+            if (i < text.length) {
+                // Insert text before cursor
+                if (cursor) {
+                    this.tagline.insertBefore(
+                        document.createTextNode(text.charAt(i)),
+                        cursor
+                    );
+                } else {
+                    this.tagline.textContent += text.charAt(i);
+                }
+                i++;
+                setTimeout(typeWriter, 60);
+            } else {
+                // After typing is done, remove cursor after a delay
+                setTimeout(() => {
+                    if (cursor) cursor.style.display = 'none';
+                }, 3000);
+            }
+        };
+
+        setTimeout(typeWriter, 600);
+    }
+}
+
+// ============================================
+// 8. MOBILE MENU TOGGLE
+// ============================================
+function initMobileMenu() {
+    const menuBtn = document.getElementById("menu-btn");
+    const navLinks = document.getElementById("nav-links");
+
+    if (!menuBtn || !navLinks) return;
+
     const menuBtnIcon = menuBtn.querySelector("i");
 
     menuBtn.addEventListener("click", () => {
         navLinks.classList.toggle("open");
         const isOpen = navLinks.classList.contains("open");
         menuBtnIcon.setAttribute("class", isOpen ? "ri-close-line" : "ri-menu-line");
+        
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = isOpen ? 'hidden' : '';
     });
 
     // Close menu when clicking on a link
@@ -290,174 +467,148 @@ if (menuBtn && navLinks) {
         if (e.target.tagName === "A") {
             navLinks.classList.remove("open");
             menuBtnIcon.setAttribute("class", "ri-menu-line");
+            document.body.style.overflow = '';
+        }
+    });
+
+    // ESC key closes mobile menu
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navLinks.classList.contains('open')) {
+            navLinks.classList.remove('open');
+            menuBtnIcon.setAttribute("class", "ri-menu-line");
+            document.body.style.overflow = '';
         }
     });
 }
 
 // ============================================
-// 5. SMOOTH SCROLL NAVIGATION
+// 9. SMOOTH SCROLL NAVIGATION
 // ============================================
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            const offsetTop = target.offsetTop - 80;
-            window.scrollTo({
-                top: offsetTop,
-                behavior: 'smooth'
+function initSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                const offsetTop = target.offsetTop - 80;
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+}
+
+// ============================================
+// 10. NAVBAR SCROLL EFFECT
+// ============================================
+function initNavScrollEffect() {
+    const nav = document.querySelector('nav');
+    if (!nav) return;
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                if (window.scrollY > 80) {
+                    nav.classList.add('scrolled');
+                } else {
+                    nav.classList.remove('scrolled');
+                }
+                ticking = false;
             });
+            ticking = true;
         }
     });
-});
-
-// ============================================
-// 6. NAVBAR BACKGROUND ON SCROLL
-// ============================================
-const nav = document.querySelector('nav');
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 100) {
-        nav.style.background = 'rgba(255, 255, 255, 0.98)';
-        nav.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.1)';
-    } else {
-        nav.style.background = 'rgba(255, 255, 255, 0.95)';
-        nav.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.05)';
-    }
-});
-
-// ============================================
-// 7. INTERSECTION OBSERVER FOR ANIMATIONS
-// ============================================
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('fade-in-up');
-            observer.unobserve(entry.target);
-        }
-    });
-}, observerOptions);
-
-// Observe all sections and cards
-document.querySelectorAll('section, .skill_category, .cert_card, .blog_card').forEach(el => {
-    observer.observe(el);
-});
-
-// ============================================
-// 8. TYPING ANIMATION FOR HERO TAGLINE
-// ============================================
-const tagline = document.querySelector('.hero_content .tagline');
-if (tagline) {
-    const text = tagline.textContent;
-    tagline.textContent = '';
-    tagline.style.opacity = '1';
-    
-    let i = 0;
-    const typeWriter = () => {
-        if (i < text.length) {
-            tagline.textContent += text.charAt(i);
-            i++;
-            setTimeout(typeWriter, 100);
-        }
-    };
-    
-    setTimeout(typeWriter, 500);
 }
 
 // ============================================
-// 9. NOTIFICATION SYSTEM
+// 11. NOTIFICATION SYSTEM
 // ============================================
 function showNotification(message, type = 'success') {
-    // Remove existing notification if any
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
+    // Remove existing notification
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
     
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.setAttribute('role', 'alert');
     notification.setAttribute('aria-live', 'polite');
-    notification.textContent = message;
+    notification.innerHTML = `
+        <i class="${type === 'success' ? 'ri-check-line' : 'ri-error-warning-line'}"></i>
+        <span>${message}</span>
+    `;
     
-    // Style the notification
     notification.style.cssText = `
         position: fixed;
         top: 100px;
         right: 20px;
         padding: 1rem 1.5rem;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+        background: ${type === 'success' ? 'linear-gradient(135deg, #2a6a77, #5fa8a4)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
         color: white;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border-radius: 14px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         z-index: 10000;
-        animation: slideInRight 0.3s ease-out;
+        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         font-weight: 500;
-        max-width: 300px;
+        max-width: 360px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.95rem;
     `;
     
     document.body.appendChild(notification);
     
-    // Auto-remove after 4 seconds
     setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease-out';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
+        notification.style.animation = 'slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        setTimeout(() => notification.remove(), 400);
     }, 4000);
 }
 
-// Add animation styles
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(100px);
+// ============================================
+// 12. INJECT ANIMATION KEYFRAMES
+// ============================================
+function injectAnimationStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(80px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
-        to {
-            opacity: 1;
-            transform: translateX(0);
+        
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(80px);
+            }
         }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            opacity: 1;
-            transform: translateX(0);
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        to {
-            opacity: 0;
-            transform: translateX(100px);
-        }
-    }
-`;
-document.head.appendChild(style);
+    `;
+    document.head.appendChild(style);
+}
 
 // ============================================
-// 10. ACCESSIBILITY IMPROVEMENTS
+// 13. LAZY LOAD IMAGES
 // ============================================
-// Add keyboard navigation support
-document.addEventListener('keydown', (e) => {
-    // ESC key closes mobile menu
-    if (e.key === 'Escape' && navLinks) {
-        navLinks.classList.remove('open');
-        if (menuBtnIcon) {
-            menuBtnIcon.setAttribute("class", "ri-menu-line");
-        }
-    }
-});
+function initLazyLoad() {
+    if (!('IntersectionObserver' in window)) return;
 
-// ============================================
-// 11. PERFORMANCE OPTIMIZATION
-// ============================================
-// Lazy load images (for future enhancement)
-if ('IntersectionObserver' in window) {
     const imageObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -476,14 +627,46 @@ if ('IntersectionObserver' in window) {
 }
 
 // ============================================
-// 12. ERROR HANDLING & LOGGING
+// 14. ERROR HANDLING
 // ============================================
-window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
-    // In production, send to error tracking service
-});
+function initErrorHandling() {
+    window.addEventListener('error', (event) => {
+        console.error('Global error:', event.error);
+    });
 
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
-    // In production, send to error tracking service
-});
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled promise rejection:', event.reason);
+    });
+}
+
+// ============================================
+// INITIALIZE EVERYTHING
+// ============================================
+function initApp() {
+    // Core features
+    new ProjectFilter();
+    new ContactFormHandler();
+    
+    // UX enhancements
+    new StatsCounter();
+    new ScrollReveal();
+    new ActiveNavHighlighter();
+    new TypingAnimation();
+    
+    // UI behaviors
+    initMobileMenu();
+    initSmoothScroll();
+    initNavScrollEffect();
+    initLazyLoad();
+    
+    // System
+    injectAnimationStyles();
+    initErrorHandling();
+}
+
+// Boot
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
