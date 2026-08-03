@@ -660,7 +660,26 @@
                         <textarea id="message" name="message" required maxlength="5000"
                             placeholder="Tell me about your project or opportunity..." autocomplete="off"></textarea>
                     </div>
-                    <button type="submit" class="submit_btn">
+
+                    <!-- Human Verification Anti-Bot Checkpoint -->
+                    <div class="human_verify_widget" id="human-verify-widget">
+                        <div class="verify_checkbox_container">
+                            <input type="checkbox" id="verify_human_checkbox" class="verify_checkbox">
+                            <label for="verify_human_checkbox" class="verify_label">
+                                <span class="custom_checkbox_box">
+                                    <i class="ri-check-line check_icon"></i>
+                                    <span class="verify_spinner"></span>
+                                </span>
+                                <span class="verify_text" id="verify-text">Verify you are human (not a robot)</span>
+                            </label>
+                        </div>
+                        <div class="verify_brand">
+                            <i class="ri-shield-user-line"></i>
+                            <span>HumanGuard</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit_btn" id="submit-btn">
                         <span>Send Message</span>
                         <i class="ri-send-plane-line" style="margin-left: 0.5rem;"></i>
                     </button>

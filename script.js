@@ -189,6 +189,13 @@ class ContactFormHandler {
             return;
         }
 
+        // Check Human Verification Guard
+        if (window.humanGuard && !window.humanGuard.isVerified) {
+            window.humanGuard.triggerShakeError();
+            showNotification('Please check "Verify you are human (not a robot)" before sending your message.', 'error');
+            return;
+        }
+
         // Prepare sanitized data
         const formData = {
             name: SecurityManager.sanitizeHTML(name),
@@ -723,9 +730,77 @@ class HumanVerificationModal {
 }
 
 // ============================================
+// 16. HUMAN VERIFICATION / BOT GUARD HANDLER
+// ============================================
+class HumanVerificationGuard {
+    constructor() {
+        this.widget = document.getElementById('human-verify-widget');
+        this.checkbox = document.getElementById('verify_human_checkbox');
+        this.verifyText = document.getElementById('verify-text');
+        this.isVerified = false;
+        this.isVerifying = false;
+
+        this.init();
+    }
+
+    init() {
+        if (!this.widget || !this.checkbox) return;
+
+        this.checkbox.addEventListener('change', () => this.handleVerificationChange());
+        
+        // Restore existing session verification if present
+        if (sessionStorage.getItem('humanVerifiedSession') === 'true') {
+            this.setVerifiedState(true);
+        }
+    }
+
+    handleVerificationChange() {
+        if (this.isVerified) return;
+
+        if (this.checkbox.checked) {
+            this.isVerifying = true;
+            this.widget.classList.add('verifying');
+            if (this.verifyText) this.verifyText.textContent = 'Verifying human interaction...';
+
+            setTimeout(() => {
+                this.isVerifying = false;
+                this.widget.classList.remove('verifying');
+                this.setVerifiedState(true);
+                showNotification('✓ Human verification successful! Session authenticated.', 'success');
+            }, 750);
+        } else {
+            this.setVerifiedState(false);
+        }
+    }
+
+    setVerifiedState(verified) {
+        this.isVerified = verified;
+        if (this.checkbox) this.checkbox.checked = verified;
+        if (verified) {
+            this.widget.classList.add('verified');
+            if (this.verifyText) this.verifyText.textContent = 'Verified Human (Session Authenticated)';
+            sessionStorage.setItem('humanVerifiedSession', 'true');
+        } else {
+            this.widget.classList.remove('verified');
+            if (this.verifyText) this.verifyText.textContent = 'Verify you are human (not a robot)';
+            sessionStorage.removeItem('humanVerifiedSession');
+        }
+    }
+
+    triggerShakeError() {
+        if (!this.widget) return;
+        this.widget.classList.add('error_shake');
+        setTimeout(() => this.widget.classList.remove('error_shake'), 500);
+    }
+}
+
+// ============================================
 // INITIALIZE EVERYTHING
 // ============================================
 function initApp() {
+    // Human Verification Guard & Security
+    window.humanGuard = new HumanVerificationGuard();
+
     // Core features
     new ProjectFilter();
     new ContactFormHandler();
