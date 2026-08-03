@@ -640,6 +640,89 @@ function initErrorHandling() {
 }
 
 // ============================================
+// 15. HUMAN VERIFICATION MODAL HANDLER
+// ============================================
+class HumanVerificationModal {
+    constructor() {
+        this.overlay = document.getElementById('verified-modal-overlay');
+        this.closeBtn = document.getElementById('verified-modal-close');
+        this.secondaryCloseBtn = document.getElementById('close-modal-btn');
+        this.copyBtn = document.getElementById('copy-verified-link');
+        this.triggers = document.querySelectorAll('[data-trigger="verified-modal"]');
+        
+        this.init();
+    }
+
+    init() {
+        if (!this.overlay) return;
+
+        // Attach event listeners to all triggers
+        this.triggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.open();
+            });
+        });
+
+        // Close button handlers
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => this.close());
+        }
+        if (this.secondaryCloseBtn) {
+            this.secondaryCloseBtn.addEventListener('click', () => this.close());
+        }
+
+        // Close on background click
+        this.overlay.addEventListener('click', (e) => {
+            if (e.target === this.overlay) {
+                this.close();
+            }
+        });
+
+        // Close on Escape key press
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen()) {
+                this.close();
+            }
+        });
+
+        // Copy proof link handler
+        if (this.copyBtn) {
+            this.copyBtn.addEventListener('click', () => this.copyProofLink());
+        }
+    }
+
+    open() {
+        this.overlay.classList.add('active');
+        this.overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    close() {
+        this.overlay.classList.remove('active');
+        this.overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    isOpen() {
+        return this.overlay.classList.contains('active');
+    }
+
+    copyProofLink() {
+        const proofUrl = window.location.origin + window.location.pathname + '#verified-human-hv2026';
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(proofUrl).then(() => {
+                showNotification('✓ Verified Human Certificate proof link copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Verified Certificate ID: HV-PM-2026-DH88', 'info');
+            });
+        } else {
+            showNotification('Verified Certificate ID: HV-PM-2026-DH88', 'info');
+        }
+    }
+}
+
+// ============================================
 // INITIALIZE EVERYTHING
 // ============================================
 function initApp() {
@@ -652,6 +735,9 @@ function initApp() {
     new ScrollReveal();
     new ActiveNavHighlighter();
     new TypingAnimation();
+    
+    // Human Verification Modal
+    new HumanVerificationModal();
     
     // UI behaviors
     initMobileMenu();
@@ -670,3 +756,4 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
+
