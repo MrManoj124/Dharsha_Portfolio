@@ -811,12 +811,12 @@ section {
 }
 
 /* ══════════════════════════════════════
-   PROJECTS SECTION — Gold & Dark Yellow
+   PROJECTS SECTION — Premium Black
    ══════════════════════════════════════ */
 
 /* Projects section background */
 #projects {
-    background: linear-gradient(160deg, #fffbeb 0%, #fef3c7 40%, #fef9ec 100%);
+    background: linear-gradient(160deg, #0d0d0d 0%, #111111 50%, #181818 100%);
     max-width: 100%;
     border-radius: 0;
     padding: 6rem 2rem;
@@ -827,35 +827,39 @@ section {
 #projects::before {
     content: '';
     position: absolute;
-    top: -80px;
-    right: -80px;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(217,119,6,0.12) 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
     pointer-events: none;
 }
 
 #projects::after {
     content: '';
     position: absolute;
-    bottom: -60px;
-    left: -60px;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(180,83,9,0.10) 0%, transparent 70%);
+    bottom: -80px;
+    left: -80px;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(200, 200, 200, 0.04) 0%, transparent 70%);
     pointer-events: none;
 }
 
-/* Gold section heading override for projects */
+/* Black section heading override for projects */
 #projects .section_header .gradient_text {
-    background: linear-gradient(135deg, #b45309 0%, #d97706 45%, #f59e0b 80%, #fcd34d 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #d1d5db 40%, #9ca3af 70%, #6b7280 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
+#projects .section_header h2 {
+    color: #f9fafb;
+}
+
 #projects .section_header p {
-    color: #78350f;
+    color: #9ca3af;
 }
 
 /* Filter Controls */
@@ -871,30 +875,31 @@ section {
 
 .filter_btn {
     padding: 0.65rem 1.4rem;
-    border: 2px solid rgba(180, 83, 9, 0.2);
-    background: rgba(255, 255, 255, 0.7);
-    color: #78350f;
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #d1d5db;
     border-radius: 50px;
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
     font-size: 0.9rem;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
 }
 
 .filter_btn:hover {
-    border-color: #d97706;
-    color: #b45309;
-    background: rgba(253, 230, 138, 0.4);
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .filter_btn.active {
-    background: linear-gradient(135deg, #b45309, #d97706, #f59e0b);
-    color: #fff;
+    background: #ffffff;
+    color: #0d0d0d;
     border-color: transparent;
-    box-shadow: 0 4px 18px rgba(180, 83, 9, 0.4);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+    font-weight: 700;
 }
 
 /* Projects Grid */
@@ -907,12 +912,12 @@ section {
 }
 
 .project_card {
-    background: #fff;
+    background: #1a1a1a;
     border-radius: 20px;
     overflow: hidden;
-    border: 1.5px solid rgba(217, 119, 6, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     transition: var(--transition);
-    box-shadow: 0 6px 24px rgba(180, 83, 9, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     animation: fadeInUp 0.4s ease-out forwards;
     position: relative;
 }
@@ -923,8 +928,8 @@ section {
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #b45309, #d97706, #f59e0b, #fcd34d);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 2;
@@ -936,8 +941,8 @@ section {
 
 .project_card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 24px 56px rgba(180, 83, 9, 0.18);
-    border-color: rgba(217, 119, 6, 0.35);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.7);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .project_card.hidden {
@@ -946,7 +951,7 @@ section {
 
 .project_image {
     height: 200px;
-    background: linear-gradient(135deg, #78350f 0%, #b45309 40%, #d97706 70%, #f59e0b 100%);
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 40%, #2d2d2d 70%, #3d3d3d 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -959,8 +964,8 @@ section {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse at 30% 30%, rgba(253, 230, 138, 0.25) 0%, transparent 60%),
-        radial-gradient(ellipse at 75% 70%, rgba(120, 53, 15, 0.3) 0%, transparent 55%);
+        radial-gradient(ellipse at 25% 25%, rgba(255, 255, 255, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 75% 75%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
     pointer-events: none;
 }
 
@@ -971,7 +976,7 @@ section {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.06) 50%, transparent 70%);
     transition: transform 0.6s ease;
     transform: translateX(-100%);
 }
@@ -982,15 +987,15 @@ section {
 
 .project_image i {
     font-size: 4rem;
-    color: rgba(255, 255, 255, 0.92);
-    text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0 2px 20px rgba(255, 255, 255, 0.15);
     position: relative;
     z-index: 1;
 }
 
 .project_content {
     padding: 2rem;
-    background: #fff;
+    background: #1a1a1a;
 }
 
 .project_content h3 {
@@ -998,12 +1003,12 @@ section {
     font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 0.75rem;
-    color: #1c0a00;
+    color: #f9fafb;
 }
 
 .project_content p {
     font-size: 0.95rem;
-    color: #78400c;
+    color: #9ca3af;
     margin-bottom: 1.5rem;
     line-height: 1.7;
 }
@@ -1017,20 +1022,20 @@ section {
 
 .tag {
     padding: 0.35rem 0.85rem;
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(217, 119, 6, 0.12));
-    color: #b45309;
+    background: rgba(255, 255, 255, 0.07);
+    color: #d1d5db;
     border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
-    border: 1px solid rgba(217, 119, 6, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .project_link {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: #b45309;
+    color: #e5e7eb;
     font-weight: 700;
     text-decoration: none;
     transition: var(--transition);
@@ -1039,9 +1044,9 @@ section {
 }
 
 .project_link:hover {
-    color: #d97706;
+    color: #ffffff;
     gap: 0.9rem;
-    text-shadow: 0 0 8px rgba(217, 119, 6, 0.3);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
 }
 
 /* ══════════════════════════════════════
@@ -1215,10 +1220,10 @@ section {
 }
 
 /* ══════════════════════════════════════
-   BLOG SECTION — Gold & Dark Yellow
+   BLOG SECTION — Premium Black
    ══════════════════════════════════════ */
 #blog {
-    background: linear-gradient(160deg, #fffbeb 0%, #fef3c7 50%, #fef9ec 100%);
+    background: linear-gradient(160deg, #0d0d0d 0%, #111111 50%, #181818 100%);
     max-width: 100%;
     border-radius: 0;
     padding: 6rem 2rem;
@@ -1229,11 +1234,11 @@ section {
 #blog::before {
     content: '';
     position: absolute;
-    top: -60px;
-    left: -60px;
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle, rgba(245, 158, 11, 0.14) 0%, transparent 70%);
+    top: -80px;
+    left: -80px;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -1242,22 +1247,26 @@ section {
     position: absolute;
     bottom: -80px;
     right: -80px;
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle, rgba(180, 83, 9, 0.10) 0%, transparent 70%);
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(200, 200, 200, 0.04) 0%, transparent 70%);
     pointer-events: none;
 }
 
-/* Gold section heading override for blog */
+/* Black section heading override for blog */
 #blog .section_header .gradient_text {
-    background: linear-gradient(135deg, #b45309 0%, #d97706 45%, #f59e0b 80%, #fcd34d 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #d1d5db 40%, #9ca3af 70%, #6b7280 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
+#blog .section_header h2 {
+    color: #f9fafb;
+}
+
 #blog .section_header p {
-    color: #78350f;
+    color: #9ca3af;
 }
 
 .blog_grid {
@@ -1271,15 +1280,15 @@ section {
 }
 
 .blog_card {
-    background: #fff;
+    background: #1a1a1a;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 6px 24px rgba(180, 83, 9, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     transition: var(--transition);
     display: flex;
     flex-direction: column;
     height: 100%;
-    border: 1.5px solid rgba(217, 119, 6, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     position: relative;
 }
 
@@ -1289,8 +1298,8 @@ section {
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #b45309, #d97706, #f59e0b, #fcd34d);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 2;
@@ -1302,19 +1311,19 @@ section {
 
 .blog_card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 24px 56px rgba(180, 83, 9, 0.18);
-    border-color: rgba(217, 119, 6, 0.35);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.7);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .blog_image {
     width: 100%;
     height: 180px;
-    background: linear-gradient(135deg, #78350f 0%, #b45309 40%, #d97706 70%, #f59e0b 100%);
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 40%, #2d2d2d 70%, #3d3d3d 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 3rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.75);
     position: relative;
     overflow: hidden;
 }
@@ -1324,8 +1333,8 @@ section {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse at 25% 30%, rgba(253, 230, 138, 0.25) 0%, transparent 55%),
-        radial-gradient(ellipse at 75% 70%, rgba(120, 53, 15, 0.25) 0%, transparent 55%);
+        radial-gradient(ellipse at 25% 30%, rgba(255, 255, 255, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 75% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 55%);
     pointer-events: none;
 }
 
@@ -1336,14 +1345,14 @@ section {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(180deg, transparent 40%, rgba(120, 53, 15, 0.2) 100%);
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.35) 100%);
     pointer-events: none;
 }
 
 .blog_image i {
     position: relative;
     z-index: 1;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    text-shadow: 0 2px 16px rgba(255, 255, 255, 0.15);
 }
 
 .blog_content {
@@ -1351,7 +1360,7 @@ section {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    background: #fff;
+    background: #1a1a1a;
 }
 
 .blog_meta {
@@ -1363,18 +1372,18 @@ section {
 }
 
 .blog_category {
-    background: linear-gradient(135deg, #b45309, #d97706, #f59e0b);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    color: #e5e7eb;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
     font-weight: 700;
     font-size: 0.75rem;
     letter-spacing: 0.4px;
-    box-shadow: 0 2px 8px rgba(180, 83, 9, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .blog_date {
-    color: #92400e;
+    color: #6b7280;
     font-size: 0.82rem;
     font-weight: 500;
 }
@@ -1382,13 +1391,13 @@ section {
 .blog_card h3 {
     font-size: 1.15rem;
     margin-bottom: 0.75rem;
-    color: #1c0a00;
+    color: #f9fafb;
     font-weight: 700;
     line-height: 1.4;
 }
 
 .blog_card p {
-    color: #78400c;
+    color: #9ca3af;
     margin-bottom: 1.25rem;
     font-size: 0.9rem;
     line-height: 1.65;
@@ -1396,7 +1405,7 @@ section {
 }
 
 .read_more {
-    color: #b45309;
+    color: #d1d5db;
     text-decoration: none;
     font-weight: 700;
     display: inline-flex;
@@ -1409,9 +1418,9 @@ section {
 }
 
 .read_more:hover {
-    color: #d97706;
+    color: #ffffff;
     gap: 0.9rem;
-    text-shadow: 0 0 8px rgba(217, 119, 6, 0.3);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
 }
 
 /* ══════════════════════════════════════
