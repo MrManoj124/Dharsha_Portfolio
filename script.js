@@ -352,7 +352,50 @@ class ScrollReveal {
 }
 
 // ============================================
-// 6. ACTIVE NAV LINK HIGHLIGHTING
+// 5b. TIMELINE CHAIN ANIMATION — MY JOURNEY
+// ============================================
+class TimelineChainAnimation {
+    constructor() {
+        this.timeline = document.querySelector('.timeline');
+        this.items = document.querySelectorAll('.chain-item');
+        if (!this.timeline || !this.items.length) return;
+        this.hasPlayed = false;
+        this.init();
+    }
+
+    init() {
+        // Observe the timeline section container
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !this.hasPlayed) {
+                    this.hasPlayed = true;
+                    this.playChain();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -60px 0px'
+        });
+
+        observer.observe(this.timeline);
+    }
+
+    playChain() {
+        // Animate the vertical connector line first
+        this.timeline.classList.add('chain-active');
+
+        // Then reveal each item sequentially with a stagger
+        this.items.forEach((item, index) => {
+            const delay = index * 180; // 180ms between each link in the chain
+            setTimeout(() => {
+                item.classList.add('chain-revealed');
+            }, delay);
+        });
+    }
+}
+
+
 // ============================================
 class ActiveNavHighlighter {
     constructor() {
@@ -808,7 +851,9 @@ function initApp() {
     // UX enhancements
     new StatsCounter();
     new ScrollReveal();
+    new TimelineChainAnimation();
     new ActiveNavHighlighter();
+
     new TypingAnimation();
     
     // Human Verification Modal
