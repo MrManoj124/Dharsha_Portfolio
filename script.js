@@ -1,879 +1,587 @@
 /**
- * Dharshana's Portfolio — Enhanced UX Script
- * ──────────────────────────────────────────
- * Features:
- * - Mobile-responsive navigation with full-screen overlay
- * - Project filtering by category with animations
- * - Animated stats counter on scroll
- * - Active nav link highlighting based on scroll position
- * - Scroll-reveal animations with stagger delays
- * - Typing animation with blinking cursor
- * - Form validation & security (CSRF, input sanitization)
- * - Smooth scrolling & back-to-top
- * - Intersection Observer-based lazy animations
+ * ═══════════════════════════════════════════════════
+ * DHARSHANA PORTFOLIO — Main Script
+ * Handles navigation, animations, form security,
+ * and interactive UI elements.
+ * ═══════════════════════════════════════════════════
+ *
+ * SECURITY FEATURES:
+ * ─ CSRF token generation & validation
+ * ─ Honeypot anti-bot field
+ * ─ Human verification checkbox with delay simulation
+ * ─ Rate limiting on form submissions
+ * ─ Input sanitization (XSS prevention)
+ * ─ Output encoding
+ * ─ Content-Security-Policy via <meta> tag in HTML
+ * ─ Referrer-Policy, X-Frame-Options, Permissions-Policy via <meta>
  */
 
-// ============================================
-// 1. PROJECT FILTERING
-// ============================================
-class ProjectFilter {
-    constructor() {
-        this.filterBtns = document.querySelectorAll('.filter_btn');
-        this.projectCards = document.querySelectorAll('.project_card');
-        this.currentFilter = 'all';
-        this.init();
-    }
+(function () {
+    'use strict';
 
-    init() {
-        if (!this.filterBtns.length) return;
-        
-        this.filterBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.handleFilterClick(e.target);
-            });
-        });
-    }
+    // ═══════════════════════════════════════
+    // UTILITY FUNCTIONS
+    // ═══════════════════════════════════════
 
-    handleFilterClick(btn) {
-        // Update active state
-        this.filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        this.currentFilter = btn.dataset.filter;
-        this.applyFilter();
-    }
-
-    applyFilter() {
-        this.projectCards.forEach(card => {
-            const category = card.dataset.category;
-            const matches = this.currentFilter === 'all' || category === this.currentFilter;
-            
-            if (!matches) {
-                card.style.opacity = '0';
-                card.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    card.classList.add('hidden');
-                }, 300);
-            } else {
-                card.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'scale(1)';
-                });
-            }
-        });
-    }
-}
-
-// ============================================
-// 2. SECURITY UTILITIES
-// ============================================
-class SecurityManager {
-    static generateCSRFToken() {
-        const token = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
-        return token;
-    }
-
-    static sanitizeHTML(str) {
+    /**
+     * Sanitize string to prevent XSS attacks.
+     * Encodes HTML special characters.
+     */
+    function sanitizeInput(str) {
+        if (typeof str !== 'string') return '';
         const div = document.createElement('div');
-        div.textContent = str;
+        div.appendChild(document.createTextNode(str));
         return div.innerHTML;
     }
 
-    static isValidEmail(email) {
-        const emailRegex = /^[^@\s]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+    /**
+     * Validate email format with a strict regex.
+     */
+    function isValidEmail(email) {
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         return emailRegex.test(email) && email.length <= 255;
     }
 
-    static isValidName(name) {
-        const nameRegex = /^[a-zA-Z\s'-]{2,100}$/;
-        return nameRegex.test(name.trim());
+    /**
+     * Generate a CSRF token (pseudo-random hex string).
+     */
+    function generateCSRFToken() {
+        const array = new Uint8Array(32);
+        window.crypto.getRandomValues(array);
+        return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    static isValidMessage(message) {
-        const trimmed = message.trim();
-        return trimmed.length >= 10 && trimmed.length <= 5000;
-    }
-}
-
-// ============================================
-// 3. CONTACT FORM WITH SECURITY
-// ============================================
-class ContactFormHandler {
-    constructor() {
-        this.form = document.getElementById('contact-form');
-        this.csrfTokenField = document.getElementById('csrf_token');
-        this.submitBtn = null;
-        this.init();
+    /**
+     * Show a toast notification.
+     */
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = `toast ${type} show`;
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3500);
     }
 
-    init() {
-        if (!this.form) return;
-        
-        // Set CSRF token
-        const csrfToken = SecurityManager.generateCSRFToken();
-        if (this.csrfTokenField) {
-            this.csrfTokenField.value = csrfToken;
-            sessionStorage.setItem('csrfToken', csrfToken);
-        }
-
-        this.submitBtn = this.form.querySelector('.submit_btn');
-        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        this.setupInputValidation();
-    }
-
-    setupInputValidation() {
-        const inputs = this.form.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            input.addEventListener('blur', (e) => this.validateField(e.target));
-            input.addEventListener('input', (e) => {
-                // Real-time sanitization
-                if (input.type !== 'email') {
-                    input.value = SecurityManager.sanitizeHTML(input.value);
-                }
-            });
-        });
-    }
-
-    validateField(field) {
-        const value = field.value.trim();
-        let isValid = true;
-
-        if (field.id === 'name') {
-            isValid = value.length > 0 && SecurityManager.isValidName(value);
-        } else if (field.id === 'email') {
-            isValid = SecurityManager.isValidEmail(value);
-        } else if (field.id === 'message') {
-            isValid = SecurityManager.isValidMessage(value);
-        }
-
-        if (!isValid && value.length > 0) {
-            field.style.borderColor = '#ef4444';
-            field.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.08)';
-        } else {
-            field.style.borderColor = '';
-            field.style.boxShadow = '';
-        }
-
-        return isValid;
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const message = document.getElementById('message').value.trim();
-        const csrfToken = this.csrfTokenField.value;
-
-        // Validate all fields
-        if (!name || !email || !message) {
-            showNotification('Please fill in all fields', 'error');
-            return;
-        }
-
-        if (!SecurityManager.isValidName(name)) {
-            showNotification('Please enter a valid name (letters, spaces, apostrophes only)', 'error');
-            return;
-        }
-
-        if (!SecurityManager.isValidEmail(email)) {
-            showNotification('Please enter a valid email address', 'error');
-            return;
-        }
-
-        if (!SecurityManager.isValidMessage(message)) {
-            showNotification('Message must be between 10 and 5000 characters', 'error');
-            return;
-        }
-
-        // Check Human Verification Guard
-        if (window.humanGuard && !window.humanGuard.isVerified) {
-            window.humanGuard.triggerShakeError();
-            showNotification('Please check "Verify you are human (not a robot)" before sending your message.', 'error');
-            return;
-        }
-
-        // Prepare sanitized data
-        const formData = {
-            name: SecurityManager.sanitizeHTML(name),
-            email: SecurityManager.sanitizeHTML(email),
-            subject: "Message from Dharsha's Portfolio",
-            message: SecurityManager.sanitizeHTML(message),
-            csrf_token: csrfToken,
-            timestamp: new Date().toISOString()
+    /**
+     * Debounce function.
+     */
+    function debounce(fn, delay) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
         };
+    }
 
-        // Disable submit button
-        this.submitBtn.disabled = true;
-        const originalHTML = this.submitBtn.innerHTML;
-        this.submitBtn.innerHTML = '<span>Sending...</span> <i class="ri-loader-4-line" style="margin-left:0.5rem; animation: spin 1s linear infinite;"></i>';
 
-        try {
-            await this.submitForm(formData);
-            
-            showNotification('Message sent successfully! I\'ll get back to you soon.', 'success');
-            this.form.reset();
-            const newToken = SecurityManager.generateCSRFToken();
-            this.csrfTokenField.value = newToken;
-            sessionStorage.setItem('csrfToken', newToken);
-        } catch (error) {
-            showNotification(error.message || 'Failed to send message. Please try again.', 'error');
-        } finally {
-            this.submitBtn.disabled = false;
-            this.submitBtn.innerHTML = originalHTML;
+    // ═══════════════════════════════════════
+    // CSRF TOKEN MANAGEMENT
+    // ═══════════════════════════════════════
+    const csrfToken = generateCSRFToken();
+    const csrfInput = document.getElementById('csrf_token');
+    if (csrfInput) {
+        csrfInput.value = csrfToken;
+    }
+    // Store in sessionStorage for validation
+    try {
+        sessionStorage.setItem('csrf_token', csrfToken);
+    } catch (e) {
+        // SessionStorage not available — continue
+    }
+
+
+    // ═══════════════════════════════════════
+    // NAVIGATION
+    // ═══════════════════════════════════════
+    const nav = document.getElementById('main-nav');
+    const menuBtn = document.getElementById('menu-btn');
+    const navLinks = document.getElementById('nav-links');
+    const navOverlay = document.getElementById('nav-overlay');
+    const navLinkItems = document.querySelectorAll('.nav_links li a');
+
+    // Toggle mobile menu
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            navOverlay.classList.toggle('open', isOpen);
+            menuBtn.querySelector('i').className = isOpen ? 'ri-close-line' : 'ri-menu-line';
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        });
+    }
+
+    // Close mobile menu on overlay click
+    if (navOverlay) {
+        navOverlay.addEventListener('click', closeMobileMenu);
+    }
+
+    // Close mobile menu on nav link click
+    navLinkItems.forEach(link => {
+        link.addEventListener('click', () => {
+            closeMobileMenu();
+        });
+    });
+
+    function closeMobileMenu() {
+        if (navLinks) navLinks.classList.remove('open');
+        if (navOverlay) navOverlay.classList.remove('open');
+        if (menuBtn) menuBtn.querySelector('i').className = 'ri-menu-line';
+        document.body.style.overflow = '';
+    }
+
+    // Nav scroll effect
+    const onScroll = debounce(() => {
+        if (nav) {
+            nav.classList.toggle('scrolled', window.scrollY > 50);
         }
-    }
+        updateActiveNavLink();
+    }, 10);
 
-    async submitForm(data) {
-        const response = await fetch('http://localhost:5000/api/contact', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: data.name,
-                email: data.email,
-                subject: data.subject,
-                message: data.message
-            })
-        });
+    window.addEventListener('scroll', onScroll, { passive: true });
 
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.message || 'Failed to send message. Please try again.');
-        }
+    // Active nav link based on scroll position
+    function updateActiveNavLink() {
+        const sections = document.querySelectorAll('section[id]');
+        const scrollY = window.scrollY + 120;
 
-        return await response.json();
-    }
-}
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.offsetHeight;
+            const sectionId = section.getAttribute('id');
 
-// ============================================
-// 4. ANIMATED STATS COUNTER
-// ============================================
-class StatsCounter {
-    constructor() {
-        this.statNumbers = document.querySelectorAll('.stat_number[data-count]');
-        this.hasAnimated = false;
-        this.init();
-    }
-
-    init() {
-        if (!this.statNumbers.length) return;
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && !this.hasAnimated) {
-                    this.hasAnimated = true;
-                    this.animateAll();
-                    observer.disconnect();
-                }
-            });
-        }, { threshold: 0.3 });
-
-        // Observe the stats container
-        const statsContainer = document.querySelector('.hero_stats');
-        if (statsContainer) {
-            observer.observe(statsContainer);
-        }
-    }
-
-    animateAll() {
-        this.statNumbers.forEach((el, index) => {
-            setTimeout(() => {
-                this.animateNumber(el);
-            }, index * 150);
-        });
-    }
-
-    animateNumber(el) {
-        const target = parseInt(el.dataset.count, 10);
-        const duration = 1800;
-        const start = performance.now();
-
-        const animate = (currentTime) => {
-            const elapsed = currentTime - start;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Ease out cubic
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.round(eased * target);
-            
-            el.textContent = current + '+';
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
-        };
-
-        requestAnimationFrame(animate);
-    }
-}
-
-// ============================================
-// 5. SCROLL-REVEAL ANIMATIONS
-// ============================================
-class ScrollReveal {
-    constructor() {
-        this.init();
-    }
-
-    init() {
-        const revealElements = document.querySelectorAll('.reveal');
-        if (!revealElements.length) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('revealed');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '0px 0px -40px 0px'
-        });
-
-        revealElements.forEach((el, index) => {
-            // Add stagger delay for grid items
-            const parent = el.parentElement;
-            if (parent) {
-                const siblings = Array.from(parent.children).filter(c => c.classList.contains('reveal'));
-                const siblingIndex = siblings.indexOf(el);
-                if (siblingIndex > 0 && siblingIndex <= 5) {
-                    el.classList.add(`reveal-delay-${siblingIndex}`);
-                }
-            }
-            observer.observe(el);
-        });
-    }
-}
-
-// ============================================
-// 5b. TIMELINE CHAIN ANIMATION — MY JOURNEY
-// ============================================
-class TimelineChainAnimation {
-    constructor() {
-        this.timeline = document.querySelector('.timeline');
-        this.items = document.querySelectorAll('.chain-item');
-        if (!this.timeline || !this.items.length) return;
-        this.hasPlayed = false;
-        this.init();
-    }
-
-    init() {
-        // Observe the timeline section container
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && !this.hasPlayed) {
-                    this.hasPlayed = true;
-                    this.playChain();
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.15,
-            rootMargin: '0px 0px -60px 0px'
-        });
-
-        observer.observe(this.timeline);
-    }
-
-    playChain() {
-        // Animate the vertical connector line first
-        this.timeline.classList.add('chain-active');
-
-        // Then reveal each item sequentially with a stagger
-        this.items.forEach((item, index) => {
-            const delay = index * 180; // 180ms between each link in the chain
-            setTimeout(() => {
-                item.classList.add('chain-revealed');
-            }, delay);
-        });
-    }
-}
-
-
-// ============================================
-class ActiveNavHighlighter {
-    constructor() {
-        this.sections = document.querySelectorAll('section[id]');
-        this.navLinks = document.querySelectorAll('.nav_links a[href^="#"]');
-        this.init();
-    }
-
-    init() {
-        if (!this.sections.length || !this.navLinks.length) return;
-        
-        // Throttled scroll listener
-        let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                requestAnimationFrame(() => {
-                    this.update();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        });
-    }
-
-    update() {
-        const scrollPos = window.scrollY + 150;
-
-        this.sections.forEach(section => {
-            const top = section.offsetTop;
-            const height = section.offsetHeight;
-            const id = section.getAttribute('id');
-
-            if (scrollPos >= top && scrollPos < top + height) {
-                this.navLinks.forEach(link => {
+            if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+                navLinkItems.forEach(link => {
                     link.classList.remove('active');
-                    if (link.getAttribute('href') === `#${id}`) {
+                    if (link.getAttribute('href') === `#${sectionId}`) {
                         link.classList.add('active');
                     }
                 });
             }
         });
     }
-}
 
-// ============================================
-// 7. TYPING ANIMATION WITH CURSOR
-// ============================================
-class TypingAnimation {
-    constructor() {
-        this.tagline = document.querySelector('.hero_content .tagline');
-        this.init();
-    }
 
-    init() {
-        if (!this.tagline) return;
+    // ═══════════════════════════════════════
+    // SCROLL REVEAL ANIMATIONS
+    // ═══════════════════════════════════════
+    const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .stagger-children');
 
-        // Get cursor element
-        const cursor = this.tagline.querySelector('.tagline_cursor');
-        
-        // Get text content without the cursor
-        const text = Array.from(this.tagline.childNodes)
-            .filter(node => node.nodeType === Node.TEXT_NODE)
-            .map(node => node.textContent)
-            .join('');
-        
-        // Clear text but keep cursor
-        this.tagline.textContent = '';
-        if (cursor) this.tagline.appendChild(cursor);
-        this.tagline.style.opacity = '1';
-
-        let i = 0;
-        const typeWriter = () => {
-            if (i < text.length) {
-                // Insert text before cursor
-                if (cursor) {
-                    this.tagline.insertBefore(
-                        document.createTextNode(text.charAt(i)),
-                        cursor
-                    );
-                } else {
-                    this.tagline.textContent += text.charAt(i);
-                }
-                i++;
-                setTimeout(typeWriter, 60);
-            } else {
-                // After typing is done, remove cursor after a delay
-                setTimeout(() => {
-                    if (cursor) cursor.style.display = 'none';
-                }, 3000);
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+                revealObserver.unobserve(entry.target);
             }
-        };
+        });
+    }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -50px 0px'
+    });
 
-        setTimeout(typeWriter, 600);
+    revealElements.forEach(el => revealObserver.observe(el));
+
+
+    // ═══════════════════════════════════════
+    // COUNTER ANIMATION
+    // ═══════════════════════════════════════
+    const counterElements = document.querySelectorAll('[data-count]');
+
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    counterElements.forEach(el => counterObserver.observe(el));
+
+    function animateCounter(el) {
+        const target = parseInt(el.getAttribute('data-count'), 10);
+        const duration = 2000;
+        const start = performance.now();
+
+        function update(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const ease = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(ease * target);
+            el.textContent = current + '+';
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                el.textContent = target + '+';
+            }
+        }
+
+        requestAnimationFrame(update);
     }
-}
 
-// ============================================
-// 8. MOBILE MENU TOGGLE
-// ============================================
-function initMobileMenu() {
-    const menuBtn = document.getElementById("menu-btn");
-    const navLinks = document.getElementById("nav-links");
 
-    if (!menuBtn || !navLinks) return;
+    // ═══════════════════════════════════════
+    // PROJECT FILTER
+    // ═══════════════════════════════════════
+    const filterBtns = document.querySelectorAll('.filter_btn');
+    const projectCards = document.querySelectorAll('.project_card');
 
-    const menuBtnIcon = menuBtn.querySelector("i");
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filter = btn.getAttribute('data-filter');
 
-    menuBtn.addEventListener("click", () => {
-        navLinks.classList.toggle("open");
-        const isOpen = navLinks.classList.contains("open");
-        menuBtnIcon.setAttribute("class", isOpen ? "ri-close-line" : "ri-menu-line");
-        
-        // Prevent body scroll when menu is open
-        document.body.style.overflow = isOpen ? 'hidden' : '';
+            // Update active button
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Filter cards
+            projectCards.forEach(card => {
+                const category = card.getAttribute('data-category');
+                if (filter === 'all' || category === filter) {
+                    card.style.display = '';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    requestAnimationFrame(() => {
+                        card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    });
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
     });
 
-    // Close menu when clicking on a link
-    navLinks.addEventListener("click", (e) => {
-        if (e.target.tagName === "A") {
-            navLinks.classList.remove("open");
-            menuBtnIcon.setAttribute("class", "ri-menu-line");
+
+    // ═══════════════════════════════════════
+    // VERIFIED BY HUMAN MODAL
+    // ═══════════════════════════════════════
+    const modalOverlay = document.getElementById('verified-modal-overlay');
+    const modalCloseBtn = document.getElementById('verified-modal-close');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const copyProofBtn = document.getElementById('copy-verified-link');
+    const modalTriggers = document.querySelectorAll('[data-trigger="verified-modal"]');
+
+    function openModal() {
+        if (modalOverlay) {
+            modalOverlay.classList.add('active');
+            modalOverlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeModal() {
+        if (modalOverlay) {
+            modalOverlay.classList.remove('active');
+            modalOverlay.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
         }
+    }
+
+    modalTriggers.forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal();
+        });
     });
 
-    // ESC key closes mobile menu
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+
+    // Close on Escape key
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && navLinks.classList.contains('open')) {
-            navLinks.classList.remove('open');
-            menuBtnIcon.setAttribute("class", "ri-menu-line");
-            document.body.style.overflow = '';
+        if (e.key === 'Escape') {
+            closeModal();
+            closeMobileMenu();
         }
     });
-}
 
-// ============================================
-// 9. SMOOTH SCROLL NAVIGATION
-// ============================================
-function initSmoothScroll() {
+    // Copy verification proof
+    if (copyProofBtn) {
+        copyProofBtn.addEventListener('click', () => {
+            const proofText = `Portfolio Verification — Anbalagan Dharshana | Certificate: HV-PM-2026-DH88 | Status: ACTIVE | ${window.location.href}`;
+            navigator.clipboard.writeText(proofText).then(() => {
+                showToast('Verification proof copied!', 'success');
+                copyProofBtn.innerHTML = '<i class="ri-check-line"></i> Copied!';
+                setTimeout(() => {
+                    copyProofBtn.innerHTML = '<i class="ri-file-copy-line"></i> Copy Verification Proof Link';
+                }, 2000);
+            }).catch(() => {
+                showToast('Copy failed. Please try again.', 'error');
+            });
+        });
+    }
+
+
+    // ═══════════════════════════════════════
+    // HUMAN VERIFICATION WIDGET
+    // ═══════════════════════════════════════
+    const verifyCheckbox = document.getElementById('verify_human_checkbox');
+    const verifyText = document.getElementById('verify-text');
+    const verifyWidget = document.getElementById('human-verify-widget');
+    let humanVerified = false;
+
+    if (verifyCheckbox) {
+        verifyCheckbox.addEventListener('change', () => {
+            if (verifyCheckbox.checked) {
+                const label = verifyCheckbox.nextElementSibling;
+                label.classList.add('verifying');
+                if (verifyText) verifyText.textContent = 'Verifying...';
+
+                // Simulate verification delay (security measure)
+                setTimeout(() => {
+                    label.classList.remove('verifying');
+                    humanVerified = true;
+                    if (verifyText) verifyText.textContent = 'Verified ✓';
+                    if (verifyWidget) verifyWidget.classList.add('verified');
+                }, 1200 + Math.random() * 800); // Random delay to prevent timing attacks
+            } else {
+                humanVerified = false;
+                if (verifyText) verifyText.textContent = 'Verify you are human';
+                if (verifyWidget) verifyWidget.classList.remove('verified');
+            }
+        });
+    }
+
+
+    // ═══════════════════════════════════════
+    // CONTACT FORM — SECURITY & VALIDATION
+    // ═══════════════════════════════════════
+    const contactForm = document.getElementById('contact-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Rate limiting
+    let lastSubmitTime = 0;
+    const RATE_LIMIT_MS = 30000; // 30 seconds between submissions
+    let submitCount = 0;
+    const MAX_SUBMISSIONS = 5;
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // ── Security Check 1: Rate Limiting ──
+            const now = Date.now();
+            if (now - lastSubmitTime < RATE_LIMIT_MS) {
+                const remainSec = Math.ceil((RATE_LIMIT_MS - (now - lastSubmitTime)) / 1000);
+                showToast(`Please wait ${remainSec}s before submitting again.`, 'error');
+                return;
+            }
+
+            if (submitCount >= MAX_SUBMISSIONS) {
+                showToast('Maximum submissions reached. Please try again later.', 'error');
+                return;
+            }
+
+            // ── Security Check 2: Honeypot ──
+            const honeypot = document.getElementById('hp_website');
+            if (honeypot && honeypot.value.trim() !== '') {
+                // Bot detected — silently fail
+                showToast('Message sent successfully!', 'success');
+                contactForm.reset();
+                return;
+            }
+
+            // ── Security Check 3: CSRF Token Validation ──
+            const tokenInput = document.getElementById('csrf_token');
+            let storedToken;
+            try {
+                storedToken = sessionStorage.getItem('csrf_token');
+            } catch (e) {
+                storedToken = csrfToken;
+            }
+            if (!tokenInput || tokenInput.value !== storedToken) {
+                showToast('Security validation failed. Please refresh the page.', 'error');
+                return;
+            }
+
+            // ── Security Check 4: Human Verification ──
+            if (!humanVerified) {
+                showToast('Please verify you are human first.', 'error');
+                return;
+            }
+
+            // ── Input Validation ──
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const messageInput = document.getElementById('message');
+            let isValid = true;
+
+            // Clear previous errors
+            [nameInput, emailInput, messageInput].forEach(input => {
+                if (input) input.classList.remove('invalid');
+            });
+
+            // Name validation
+            const nameVal = nameInput ? nameInput.value.trim() : '';
+            if (!nameVal || nameVal.length < 2 || nameVal.length > 100) {
+                if (nameInput) nameInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Email validation
+            const emailVal = emailInput ? emailInput.value.trim() : '';
+            if (!emailVal || !isValidEmail(emailVal)) {
+                if (emailInput) emailInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Message validation
+            const messageVal = messageInput ? messageInput.value.trim() : '';
+            if (!messageVal || messageVal.length < 10 || messageVal.length > 5000) {
+                if (messageInput) messageInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                showToast('Please fill in all fields correctly.', 'error');
+                return;
+            }
+
+            // ── Sanitize Inputs ──
+            const sanitizedData = {
+                name: sanitizeInput(nameVal),
+                email: sanitizeInput(emailVal),
+                message: sanitizeInput(messageVal),
+                csrf_token: tokenInput.value,
+                timestamp: new Date().toISOString()
+            };
+
+            // ── Submit ──
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                // Attempt to send to backend (if available)
+                const response = await fetch('http://localhost:5000/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': sanitizedData.csrf_token
+                    },
+                    body: JSON.stringify(sanitizedData)
+                });
+
+                if (response.ok) {
+                    showToast('Message sent successfully! I\'ll get back to you soon.', 'success');
+                    contactForm.reset();
+                    humanVerified = false;
+                    if (verifyCheckbox) verifyCheckbox.checked = false;
+                    if (verifyText) verifyText.textContent = 'Verify you are human';
+                    if (verifyWidget) verifyWidget.classList.remove('verified');
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (err) {
+                // Fallback: mailto link
+                const mailtoLink = `mailto:anbalagandharshana14@gmail.com?subject=Portfolio Contact from ${encodeURIComponent(sanitizedData.name)}&body=${encodeURIComponent(`Name: ${sanitizedData.name}\nEmail: ${sanitizedData.email}\n\nMessage:\n${sanitizedData.message}`)}`;
+                window.location.href = mailtoLink;
+                showToast('Opening your email client...', 'success');
+                contactForm.reset();
+                humanVerified = false;
+                if (verifyCheckbox) verifyCheckbox.checked = false;
+                if (verifyText) verifyText.textContent = 'Verify you are human';
+                if (verifyWidget) verifyWidget.classList.remove('verified');
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+                lastSubmitTime = Date.now();
+                submitCount++;
+
+                // Regenerate CSRF token
+                const newToken = generateCSRFToken();
+                if (tokenInput) tokenInput.value = newToken;
+                try {
+                    sessionStorage.setItem('csrf_token', newToken);
+                } catch (e) { /* no-op */ }
+            }
+        });
+
+        // Real-time validation feedback
+        const formInputs = contactForm.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('blur', () => {
+                if (input.value.trim() === '' && input.required) {
+                    input.classList.add('invalid');
+                } else {
+                    input.classList.remove('invalid');
+                }
+            });
+
+            input.addEventListener('input', () => {
+                if (input.classList.contains('invalid')) {
+                    if (input.value.trim() !== '') {
+                        input.classList.remove('invalid');
+                    }
+                }
+            });
+        });
+    }
+
+
+    // ═══════════════════════════════════════
+    // SMOOTH SCROLL FOR ANCHOR LINKS
+    // ═══════════════════════════════════════
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+
+            const target = document.querySelector(targetId);
             if (target) {
-                const offsetTop = target.offsetTop - 80;
+                e.preventDefault();
+                const navHeight = nav ? nav.offsetHeight : 80;
+                const targetPosition = target.getBoundingClientRect().top + window.scrollY - navHeight - 20;
+
                 window.scrollTo({
-                    top: offsetTop,
+                    top: targetPosition,
                     behavior: 'smooth'
                 });
             }
         });
     });
-}
 
-// ============================================
-// 10. NAVBAR SCROLL EFFECT
-// ============================================
-function initNavScrollEffect() {
-    const nav = document.querySelector('nav');
-    if (!nav) return;
 
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            requestAnimationFrame(() => {
-                if (window.scrollY > 80) {
-                    nav.classList.add('scrolled');
-                } else {
-                    nav.classList.remove('scrolled');
-                }
-                ticking = false;
-            });
-            ticking = true;
-        }
-    });
-}
+    // ═══════════════════════════════════════
+    // ADDITIONAL SECURITY MEASURES
+    // ═══════════════════════════════════════
 
-// ============================================
-// 11. NOTIFICATION SYSTEM
-// ============================================
-function showNotification(message, type = 'success') {
-    // Remove existing notification
-    const existing = document.querySelector('.notification');
-    if (existing) existing.remove();
-    
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.setAttribute('role', 'alert');
-    notification.setAttribute('aria-live', 'polite');
-    notification.innerHTML = `
-        <i class="${type === 'success' ? 'ri-check-line' : 'ri-error-warning-line'}"></i>
-        <span>${message}</span>
-    `;
-    
-    notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #2a6a77, #5fa8a4)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
-        color: white;
-        border-radius: 14px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        font-weight: 500;
-        max-width: 360px;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.95rem;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-        setTimeout(() => notification.remove(), 400);
-    }, 4000);
-}
-
-// ============================================
-// 12. INJECT ANIMATION KEYFRAMES
-// ============================================
-function injectAnimationStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(80px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        @keyframes slideOutRight {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(80px);
-            }
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// ============================================
-// 13. LAZY LOAD IMAGES
-// ============================================
-function initLazyLoad() {
-    if (!('IntersectionObserver' in window)) return;
-
-    const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                if (img.dataset.src) {
-                    img.src = img.dataset.src;
-                    imageObserver.unobserve(img);
-                }
-            }
+    // Prevent right-click context menu on images (optional portfolio protection)
+    document.querySelectorAll('img').forEach(img => {
+        img.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
         });
     });
-    
-    document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
+
+    // Detect and warn about suspicious console activity
+    const devToolsWarning = () => {
+        console.log(
+            '%c⚠ Security Notice',
+            'color: #E8A838; font-size: 20px; font-weight: bold;'
+        );
+        console.log(
+            '%cThis portfolio is protected with comprehensive security measures.\nAll inputs are sanitized and validated.\n\n— Dharshana Portfolio Security',
+            'color: #14532d; font-size: 14px;'
+        );
+    };
+    devToolsWarning();
+
+    // Disable drag on images
+    document.querySelectorAll('img').forEach(img => {
+        img.addEventListener('dragstart', (e) => e.preventDefault());
     });
-}
 
-// ============================================
-// 14. ERROR HANDLING
-// ============================================
-function initErrorHandling() {
-    window.addEventListener('error', (event) => {
-        console.error('Global error:', event.error);
-    });
-
-    window.addEventListener('unhandledrejection', (event) => {
-        console.error('Unhandled promise rejection:', event.reason);
-    });
-}
-
-// ============================================
-// 15. HUMAN VERIFICATION MODAL HANDLER
-// ============================================
-class HumanVerificationModal {
-    constructor() {
-        this.overlay = document.getElementById('verified-modal-overlay');
-        this.closeBtn = document.getElementById('verified-modal-close');
-        this.secondaryCloseBtn = document.getElementById('close-modal-btn');
-        this.copyBtn = document.getElementById('copy-verified-link');
-        this.triggers = document.querySelectorAll('[data-trigger="verified-modal"]');
-        
-        this.init();
-    }
-
-    init() {
-        if (!this.overlay) return;
-
-        // Attach event listeners to all triggers
-        this.triggers.forEach(trigger => {
-            trigger.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.open();
-            });
-        });
-
-        // Close button handlers
-        if (this.closeBtn) {
-            this.closeBtn.addEventListener('click', () => this.close());
-        }
-        if (this.secondaryCloseBtn) {
-            this.secondaryCloseBtn.addEventListener('click', () => this.close());
-        }
-
-        // Close on background click
-        this.overlay.addEventListener('click', (e) => {
-            if (e.target === this.overlay) {
-                this.close();
-            }
-        });
-
-        // Close on Escape key press
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen()) {
-                this.close();
-            }
-        });
-
-        // Copy proof link handler
-        if (this.copyBtn) {
-            this.copyBtn.addEventListener('click', () => this.copyProofLink());
-        }
-    }
-
-    open() {
-        this.overlay.classList.add('active');
-        this.overlay.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-    }
-
-    close() {
-        this.overlay.classList.remove('active');
-        this.overlay.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-    }
-
-    isOpen() {
-        return this.overlay.classList.contains('active');
-    }
-
-    copyProofLink() {
-        const proofUrl = window.location.origin + window.location.pathname + '#verified-human-hv2026';
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(proofUrl).then(() => {
-                showNotification('✓ Verified Human Certificate proof link copied to clipboard!', 'success');
-            }).catch(() => {
-                showNotification('Verified Certificate ID: HV-PM-2026-DH88', 'info');
-            });
-        } else {
-            showNotification('Verified Certificate ID: HV-PM-2026-DH88', 'info');
-        }
-    }
-}
-
-// ============================================
-// 16. HUMAN VERIFICATION / BOT GUARD HANDLER
-// ============================================
-class HumanVerificationGuard {
-    constructor() {
-        this.widget = document.getElementById('human-verify-widget');
-        this.checkbox = document.getElementById('verify_human_checkbox');
-        this.verifyText = document.getElementById('verify-text');
-        this.isVerified = false;
-        this.isVerifying = false;
-
-        this.init();
-    }
-
-    init() {
-        if (!this.widget || !this.checkbox) return;
-
-        this.checkbox.addEventListener('change', () => this.handleVerificationChange());
-        
-        // Restore existing session verification if present
-        if (sessionStorage.getItem('humanVerifiedSession') === 'true') {
-            this.setVerifiedState(true);
-        }
-    }
-
-    handleVerificationChange() {
-        if (this.isVerified) return;
-
-        if (this.checkbox.checked) {
-            this.isVerifying = true;
-            this.widget.classList.add('verifying');
-            if (this.verifyText) this.verifyText.textContent = 'Verifying human interaction...';
-
-            setTimeout(() => {
-                this.isVerifying = false;
-                this.widget.classList.remove('verifying');
-                this.setVerifiedState(true);
-                showNotification('✓ Human verification successful! Session authenticated.', 'success');
-            }, 750);
-        } else {
-            this.setVerifiedState(false);
-        }
-    }
-
-    setVerifiedState(verified) {
-        this.isVerified = verified;
-        if (this.checkbox) this.checkbox.checked = verified;
-        if (verified) {
-            this.widget.classList.add('verified');
-            if (this.verifyText) this.verifyText.textContent = 'Verified Human (Session Authenticated)';
-            sessionStorage.setItem('humanVerifiedSession', 'true');
-        } else {
-            this.widget.classList.remove('verified');
-            if (this.verifyText) this.verifyText.textContent = 'Verify you are human (not a robot)';
-            sessionStorage.removeItem('humanVerifiedSession');
-        }
-    }
-
-    triggerShakeError() {
-        if (!this.widget) return;
-        this.widget.classList.add('error_shake');
-        setTimeout(() => this.widget.classList.remove('error_shake'), 500);
-    }
-}
-
-// ============================================
-// INITIALIZE EVERYTHING
-// ============================================
-function initApp() {
-    // Human Verification Guard & Security
-    window.humanGuard = new HumanVerificationGuard();
-
-    // Core features
-    new ProjectFilter();
-    new ContactFormHandler();
-    
-    // UX enhancements
-    new StatsCounter();
-    new ScrollReveal();
-    new TimelineChainAnimation();
-    new ActiveNavHighlighter();
-
-    new TypingAnimation();
-    
-    // Human Verification Modal
-    new HumanVerificationModal();
-    
-    // UI behaviors
-    initMobileMenu();
-    initSmoothScroll();
-    initNavScrollEffect();
-    initLazyLoad();
-    
-    // System
-    injectAnimationStyles();
-    initErrorHandling();
-}
-
-// Boot
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
-
+})();

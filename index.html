@@ -7,205 +7,339 @@
     <meta name="description"
         content="Anbalagan Dharshana — Professional Project Management Portfolio. Strategic Leader, Problem Solver, and BBM Hons in Project Management.">
     <meta name="title" content="Dharshana | Project Manager Portfolio">
+
     <!-- Security Headers -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:5000; frame-ancestors 'none'; base-uri 'self'; form-action 'self' http://localhost:5000; upgrade-insecure-requests;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Permissions-Policy"
+        content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()">
+
     <title>Dharshana | Project Manager Portfolio</title>
 
     <!-- Remix Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"
+        crossorigin="anonymous">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="app_container">
-        <!-- Navigation -->
-        <nav>
-            <div class="nav_container">
-                <div class="nav_logo">
-                    <span class="logo_icon"><i class="ri-circle-fill"></i></span> Dharshana.
-                    <!--<div class="nav_verified_pill" data-trigger="verified-modal" title="Click to view Human Verification Certificate">
-                        <i class="ri-shield-check-fill"></i>
-                        <span>Verified by Human</span>
-                        <span class="pulse_dot"></span>
-                    </div> -->
-                </div>
-                <button class="nav_menu_btn" id="menu-btn" aria-label="Toggle navigation menu">
-                    <i class="ri-menu-line"></i>
-                </button>
-                <ul class="nav_links" id="nav-links">
-                    <li><a href="#home" class="active">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#experience">Experience</a></li>
-                    <li><a href="#projects">Projects</a></li>
-                    <li><a href="#skills">Skills</a></li>
-                    <li><a href="#certifications">Certifications</a></li>
-                    <li><a href="#blog">Blog</a></li>
-                    <li><a href="#contact" class="cta_btn">Contact</a></li>
-                </ul>
-            </div>
-        </nav>
+    <!-- Skip to Content (Accessibility) -->
+    <a href="#home" class="skip-link">Skip to content</a>
 
-        <!-- Hero Section -->
-        <section class="hero" id="home">
-            <div class="hero_container">
-                <div class="hero_content">
-                    <div class="hero_badge_row">
-                        <div class="accent_bar"></div>
-                        <!-- <div class="hero_verified_badge" data-trigger="verified-modal" title="Click to view Human Verification Certificate">
-                            <i class="ri-shield-check-fill"></i>
-                            <span>Verified by Human</span>
-                        </div> -->
-                    </div>
-                    <h1>
-                        I'm Anbalagan Dharshana, <br>a <span class="accent_text">Project Manager.</span>
-                    </h1>
-                    <p class="tagline">Strategic Leader | Problem Solver | BBM Hons in Project Management<span
-                            class="tagline_cursor"></span></p>
-                    <p>
-                        Passionate project management professional specializing in leading cross-functional teams,
-                        delivering projects on time and within budget, and driving organizational success through
-                        strategic planning, process refinement, and agile execution.
-                    </p>
-                    <div class="hero_buttons">
-                        <a href="#contact" class="btn_primary">Contact Me</a>
-                        <a href="#projects" class="btn_secondary">Browse Portfolio</a>
-                    </div>
-                    <div class="hero_stats">
-                        <div class="stat_item">
-                            <div class="stat_number" data-count="10">0</div>
-                            <div class="stat_label">Projects</div>
-                        </div>
-                        <div class="stat_item">
-                            <div class="stat_number" data-count="15">0</div>
-                            <div class="stat_label">Team Members Led</div>
-                        </div>
-                        <div class="stat_item">
-                            <div class="stat_number" data-count="5">0</div>
-                            <div class="stat_label">Certifications</div>
-                        </div>
-                        <div class="stat_item">
-                            <div class="stat_number" data-count="3">0</div>
-                            <div class="stat_label">Years Experience</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero_image">
-                    <div class="avatar_ripple_container">
-                        <div class="ripple ripple_1"></div>
-                        <div class="ripple ripple_2"></div>
-                        <div class="ripple ripple_3"></div>
-                        <div class="avatar_ring">
-                            <div class="avatar_img_container">
-                                <img src="Portfolio_White_C.jpeg" alt="Anbalagan Dharshana — Project Manager"
-                                    class="avatar_img" id="profile-img">
-                                <div class="avatar_placeholder">
-                                    <i class="ri-user-3-line"></i>
-                                    <span class="placeholder_text">Photo Placeholder</span>
-                                </div>
-                            </div>
-                            <!--
-                            <div class="avatar_verified_seal" data-trigger="verified-modal" title="Click for Human Verification Details">
-                                <i class="ri-shield-check-fill"></i>
-                                <span>Verified Human</span>
-                            </div>
-                            -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <!-- Mobile Nav Overlay -->
+    <div class="nav_overlay" id="nav-overlay"></div>
 
-        <!-- About Section -->
-        <section id="about">
-            <div class="section_header">
-                <h2>About <span class="gradient_text">Me</span></h2>
-                <p>Learn more about my background, education, and approach to project management</p>
+    <!-- Navigation -->
+    <nav id="main-nav">
+        <div class="nav_container">
+            <a href="#home" class="nav_logo">
+                <span class="logo_icon"><i class="ri-circle-fill"></i></span> Dharshana.
+            </a>
+            <ul class="nav_links" id="nav-links">
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#contact" class="nav_cta_btn">Contact Me</a></li>
+            </ul>
+            <button class="nav_menu_btn" id="menu-btn" aria-label="Toggle navigation menu">
+                <i class="ri-menu-line"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════════════
+         HERO SECTION
+         ═══════════════════════════════ -->
+    <section class="hero" id="home">
+        <div class="hero_container">
+            <div class="hero_content">
+                <div class="hero_badge">Hello There!</div>
+                <h1>
+                    I'm <span class="accent_text">Dharshana,</span><br>
+                    Project Manager<br>
+                    Based in Sri Lanka.
+                </h1>
+                <p class="hero_subtitle">
+                    I'm an experienced Project Manager with 3+ years in the field, collaborating with
+                    cross-functional teams, managing complex initiatives, and driving organizational success through
+                    strategic planning and agile execution.
+                </p>
+                <div class="hero_buttons">
+                    <a href="#projects" class="btn_primary">
+                        View My Portfolio
+                        <span class="btn_icon"><i class="ri-play-fill"></i></span>
+                    </a>
+                    <a href="#contact" class="btn_secondary">Hire Me</a>
+                </div>
             </div>
-            <div class="about_content">
-                <div class="about_image">
-                    <div class="about_image_wrapper">
+            <div class="hero_image">
+                <div class="hero_photo_wrapper">
+                    <div class="hero_photo_circle">
+                        <img src="Portfolio_White_C.jpeg" alt="Anbalagan Dharshana — Project Manager" loading="eager">
+                    </div>
+
+                    <!-- Decorative spinning circle -->
+                    <div class="hero_decorative_circle">
+                        <div class="hero_rotating_text">
+                            <!-- Rotating text letters positioned around circle -->
+                        </div>
+                        <i class="ri-close-line"></i>
+                    </div>
+
+                    <!-- Floating Tags -->
+                    <div class="hero_float_tag tag_1">
+                        <i class="ri-user-star-line"></i> Project Manager
+                    </div>
+                    <div class="hero_float_tag tag_2">
+                        <i class="ri-shield-check-line"></i> Agile/Scrum
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         SCROLLING MARQUEE
+         ═══════════════════════════════ -->
+    <div class="marquee_section">
+        <div class="marquee_track" id="marquee-track">
+            <div class="marquee_content">
+                <div class="marquee_item"><span class="chevron"><i class="ri-arrow-left-s-line"></i></span> Project
+                    Planning <span class="separator">✦</span></div>
+                <div class="marquee_item">Risk Analysis <span class="separator">✦</span></div>
+                <div class="marquee_item">Stakeholder Management <span class="separator">✦</span></div>
+                <div class="marquee_item">Agile Methodology <span class="separator">✦</span></div>
+                <div class="marquee_item">Budget Tracking <span class="separator">✦</span></div>
+                <div class="marquee_item">Team Leadership <span class="separator">✦</span></div>
+                <div class="marquee_item">Process Optimization <span class="separator">✦</span></div>
+                <div class="marquee_item">Strategic Planning <span class="separator">✦</span></div>
+            </div>
+            <div class="marquee_content" aria-hidden="true">
+                <div class="marquee_item"><span class="chevron"><i class="ri-arrow-left-s-line"></i></span> Project
+                    Planning <span class="separator">✦</span></div>
+                <div class="marquee_item">Risk Analysis <span class="separator">✦</span></div>
+                <div class="marquee_item">Stakeholder Management <span class="separator">✦</span></div>
+                <div class="marquee_item">Agile Methodology <span class="separator">✦</span></div>
+                <div class="marquee_item">Budget Tracking <span class="separator">✦</span></div>
+                <div class="marquee_item">Team Leadership <span class="separator">✦</span></div>
+                <div class="marquee_item">Process Optimization <span class="separator">✦</span></div>
+                <div class="marquee_item">Strategic Planning <span class="separator">✦</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         SERVICES SECTION
+         ═══════════════════════════════ -->
+    <section class="services_section" id="services">
+        <div class="container">
+            <div class="section_top_row">
+                <div class="section_header">
+                    <div class="section_label"><span class="dash"></span> Services</div>
+                    <h2>Services <span class="green">I Provide</span></h2>
+                </div>
+                <a href="#projects" class="view_all_btn">
+                    View All Services
+                    <span class="arrow_circle"><i class="ri-arrow-right-line"></i></span>
+                </a>
+            </div>
+            <div class="services_grid stagger-children">
+                <!-- Service 1 -->
+                <div class="service_card reveal">
+                    <div class="service_card_icon">
+                        <i class="ri-layout-masonry-line"></i>
+                    </div>
+                    <h3>Project Planning</h3>
+                    <p>Comprehensive project planning with Gantt charts, WBS, resource allocation, and milestone
+                        tracking to ensure successful project delivery.</p>
+                    <a href="#" class="learn_more">Learn More <i class="ri-arrow-right-line"></i></a>
+                </div>
+                <!-- Service 2 -->
+                <div class="service_card reveal">
+                    <div class="service_card_icon">
+                        <i class="ri-refresh-line"></i>
+                    </div>
+                    <h3>Agile Management</h3>
+                    <p>Expert in Scrum and Kanban methodologies — sprint planning, backlog refinement, daily standups,
+                        and retrospectives for optimal team velocity.</p>
+                    <a href="#" class="learn_more">Learn More <i class="ri-arrow-right-line"></i></a>
+                </div>
+                <!-- Service 3 -->
+                <div class="service_card reveal">
+                    <div class="service_card_icon">
+                        <i class="ri-shield-check-line"></i>
+                    </div>
+                    <h3>Risk Analysis</h3>
+                    <p>Thorough risk identification, assessment, and mitigation strategies. Building risk registers and
+                        contingency plans to safeguard project success.</p>
+                    <a href="#" class="learn_more">Learn More <i class="ri-arrow-right-line"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         ABOUT SECTION
+         ═══════════════════════════════ -->
+    <section class="about_section" id="about">
+        <div class="about_container">
+            <div class="about_image_wrapper reveal-left">
+                <div class="about_photo_container">
+                    <div class="about_photo_bg"></div>
+                    <div class="about_photo_ring">
                         <img src="Portfolio_White_C.jpeg" alt="Dharshana — Professional Portrait">
                     </div>
-                </div>
-                <div class="about_text">
-                    <h3>Project Management Professional</h3>
-                    <p>
-                        I hold a BBM Honours degree in Project Management from the University of Colombo and have
-                        developed a strong foundation in planning, executing, and delivering successful projects
-                        across various industries. My academic background combined with hands-on practical
-                        experience has equipped me with the skills to manage complex projects and lead diverse teams.
-                    </p>
-                    <p>
-                        My approach to project management is centered on clear communication, strategic planning,
-                        and continuous improvement. I believe in leveraging both traditional and agile methodologies
-                        to deliver value and exceed stakeholder expectations — ensuring every milestone counts.
-                    </p>
-                    <div class="about_highlights">
-                        <div class="highlight_item reveal">
-                            <i class="ri-graduation-cap-line"></i>
-                            <h4>Education</h4>
-                            <p>BBM Hons in Project Management, University of Vavuniya</p>
-                        </div>
-                        <div class="highlight_item reveal">
-                            <i class="ri-team-line"></i>
-                            <h4>Leadership</h4>
-                            <p>Cross-functional Team Management across diverse departments</p>
-                        </div>
-                        <div class="highlight_item reveal">
-                            <i class="ri-line-chart-line"></i>
-                            <h4>Results-Driven</h4>
-                            <p>Proven track record of on-time, under-budget delivery</p>
-                        </div>
-                        <div class="highlight_item reveal">
-                            <i class="ri-lightbulb-line"></i>
-                            <h4>Innovation</h4>
-                            <p>Strategic problem solving with data-driven decision making</p>
-                        </div>
-                    </div>
-
-                    <!-- Verified by Human Trust Box -->
-                    <div class="about_verified_box reveal" data-trigger="verified-modal"
-                        title="Click to view Human Verification Certificate">
-                        <div class="verified_box_header">
-                            <div class="verified_box_badge">
-                                <i class="ri-shield-check-fill"></i> Verified by Human
-                            </div>
-                            <span class="verified_box_status"><i class="ri-checkbox-circle-fill"></i> Authentic
-                                Profile</span>
-                        </div>
-                        <div class="verified_box_body">
-                            <h4>100% Human-Executed Work & Authentic Experience</h4>
-                            <p>
-                                Every project, academic credential, and case study presented on this portfolio is
-                                verified to be authentic and human-crafted. Guaranteed direct human communication for
-                                all project inquiries.
-                            </p>
-                            <div class="verified_box_tags">
-                                <span><i class="ri-user-heart-line"></i> Direct Human Contact</span>
-                                <span><i class="ri-article-line"></i> Verified Academic Record</span>
-                                <span><i class="ri-file-shield-line"></i> Authentic Work Guarantee</span>
-                            </div>
-                        </div>
-                        <button class="btn_view_cert" type="button">
-                            <i class="ri-award-line"></i> View Human Verification Certificate <i
-                                class="ri-arrow-right-line"></i>
-                        </button>
-                    </div>
+                    <!-- Floating skill bubbles -->
+                    <div class="about_skill_bubble gold">Agile/Scrum</div>
+                    <div class="about_skill_bubble">Risk Management</div>
+                    <div class="about_skill_bubble green">MS Project</div>
+                    <div class="about_skill_bubble">Stakeholder Mgmt</div>
+                    <div class="about_skill_bubble gold">Leadership</div>
+                    <div class="about_skill_bubble green">Budget Tracking</div>
                 </div>
             </div>
-        </section>
+            <div class="about_text_content reveal-right">
+                <div class="section_label"><span class="dash"></span> About Me</div>
+                <h3>Who is <span class="accent">Dharshana?</span></h3>
+                <p>
+                    I hold a BBM Honours degree in Project Management from the University of Vavuniya and have
+                    developed a strong foundation in planning, executing, and delivering successful projects.
+                    My approach is centered on clear communication, strategic planning, and continuous improvement —
+                    leveraging both traditional and agile methodologies to deliver value and exceed stakeholder
+                    expectations.
+                </p>
+                <div class="about_stats">
+                    <div class="about_stat_item">
+                        <div class="about_stat_number" data-count="10">0+</div>
+                        <div class="about_stat_label">Projects Completed</div>
+                    </div>
+                    <div class="about_stat_item">
+                        <div class="about_stat_number" data-count="15">0+</div>
+                        <div class="about_stat_label">Team Members Led</div>
+                    </div>
+                    <div class="about_stat_item">
+                        <div class="about_stat_number" data-count="3">0+</div>
+                        <div class="about_stat_label">Years of Experience</div>
+                    </div>
+                </div>
+                <div class="about_actions">
+                    <a href="#contact" class="btn_download">
+                        Download CV
+                    </a>
+                    <a href="#contact" class="btn_download_circle" aria-label="Download CV">
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <span class="about_signature">Dharshana</span>
+                </div>
 
-        <!-- Experience Timeline Section -->
-        <section id="experience">
+                <!-- Verified by Human Trust Box -->
+                <div class="about_verified_box reveal" data-trigger="verified-modal"
+                    title="Click to view Human Verification Certificate">
+                    <div class="verified_box_header">
+                        <div class="verified_box_badge">
+                            <i class="ri-shield-check-fill"></i> Verified by Human
+                        </div>
+                        <span class="verified_box_status"><i class="ri-checkbox-circle-fill"></i> Authentic
+                            Profile</span>
+                    </div>
+                    <div class="verified_box_body">
+                        <h4>100% Human-Executed Work & Authentic Experience</h4>
+                        <p>
+                            Every project, academic credential, and case study presented on this portfolio is
+                            verified to be authentic and human-crafted. Guaranteed direct human communication for
+                            all project inquiries.
+                        </p>
+                        <div class="verified_box_tags">
+                            <span><i class="ri-user-heart-line"></i> Direct Human Contact</span>
+                            <span><i class="ri-article-line"></i> Verified Academic Record</span>
+                            <span><i class="ri-file-shield-line"></i> Authentic Work Guarantee</span>
+                        </div>
+                    </div>
+                    <button class="btn_view_cert" type="button">
+                        <i class="ri-award-line"></i> View Human Verification Certificate <i
+                            class="ri-arrow-right-line"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         TOOLS & SKILLS SECTION
+         ═══════════════════════════════ -->
+    <section class="tools_section" id="tools">
+        <div class="container">
             <div class="section_header">
-                <h2>My <span class="gradient_text">Journey</span></h2>
+                <div class="section_label"><span class="dash"></span> My Favorite Tools</div>
+                <h2>Skills & <span class="accent">Expertise</span></h2>
+                <p>Comprehensive skill set in project management methodologies, tools, and leadership</p>
+            </div>
+            <div class="tools_grid stagger-children">
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-microsoft-line"></i></div>
+                    <p>MS Project</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-trello-line"></i></div>
+                    <p>Jira</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-task-line"></i></div>
+                    <p>Asana</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-trello-fill"></i></div>
+                    <p>Trello</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-calendar-check-line"></i></div>
+                    <p>Monday.com</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-table-line"></i></div>
+                    <p>Smartsheet</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-slack-line"></i></div>
+                    <p>Slack</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-file-excel-line"></i></div>
+                    <p>MS Office</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-bar-chart-box-line"></i></div>
+                    <p>SPSS</p>
+                </div>
+                <div class="tool_card">
+                    <div class="tool_card_icon"><i class="ri-survey-line"></i></div>
+                    <p>KOBO</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         EXPERIENCE TIMELINE
+         ═══════════════════════════════ -->
+    <section class="experience_section" id="experience">
+        <div class="container">
+            <div class="section_header">
+                <div class="section_label"><span class="dash"></span> Journey</div>
+                <h2>My <span class="accent">Journey</span></h2>
                 <p>Key milestones in my academic and professional career</p>
             </div>
             <div class="timeline">
-                <div class="timeline_item chain-item">
+                <div class="timeline_item reveal">
                     <div class="timeline_content">
                         <span class="timeline_date">2024 – Present</span>
                         <h3>Project Coordinator</h3>
@@ -214,16 +348,16 @@
                             ensuring stakeholder alignment across multiple concurrent projects.</p>
                     </div>
                 </div>
-                <div class="timeline_item chain-item">
+                <div class="timeline_item reveal">
                     <div class="timeline_content">
-                        <span class="timeline_date">2026 - 2027</span>
+                        <span class="timeline_date">2026 – 2027</span>
                         <h3>Internship — Project Management</h3>
                         <h4>Industry Experience</h4>
                         <p>Gained hands-on experience with Agile and Waterfall methodologies, risk assessment, and
                             budget tracking under senior project managers.</p>
                     </div>
                 </div>
-                <div class="timeline_item chain-item">
+                <div class="timeline_item reveal">
                     <div class="timeline_content">
                         <span class="timeline_date">2023 – 2027</span>
                         <h3>BBM Hons in Project Management</h3>
@@ -232,27 +366,31 @@
                             leadership. Graduated with strong academic performance.</p>
                     </div>
                 </div>
-                <div class="timeline_item chain-item">
+                <div class="timeline_item reveal">
                     <div class="timeline_content">
-                        <span class="timeline_date">2019-2022</span>
+                        <span class="timeline_date">2019 – 2022</span>
                         <h3>Advanced Level Examination</h3>
                         <h4>Main Arts</h4>
                         <p>Completed A/Ls with distinction, building a foundation in Economics, Communication and Media
-                            Studies, and
-                            Geography that paved the way for a career in project management.</p>
+                            Studies, and Geography.</p>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Projects Section -->
-        <section id="projects">
+    <!-- ═══════════════════════════════
+         PROJECTS SECTION
+         ═══════════════════════════════ -->
+    <section class="projects_section" id="projects">
+        <div class="container">
             <div class="section_header">
-                <h2>Featured <span class="gradient_text">Projects</span></h2>
+                <div class="section_label"><span class="dash"></span> Portfolio</div>
+                <h2>Featured <span class="accent">Projects</span></h2>
                 <p>Explore some of my successful project management initiatives</p>
             </div>
 
-            <!-- Project Filter Controls -->
+            <!-- Filter Controls -->
             <div class="filter_controls" data-component="project-filter">
                 <button class="filter_btn active" data-filter="all">All Projects</button>
                 <button class="filter_btn" data-filter="agile">Agile/Scrum</button>
@@ -268,272 +406,89 @@
                     </div>
                     <div class="project_content">
                         <h3>Enterprise Software Implementation</h3>
-                        <p>
-                            Led a cross-functional team of 15 members in implementing a new enterprise
-                            resource planning system. Delivered the project 2 weeks ahead of schedule
-                            with 95% user adoption rate.
-                        </p>
+                        <p>Led a cross-functional team of 15 members in implementing a new enterprise
+                            resource planning system. Delivered 2 weeks ahead of schedule with 95% user adoption.</p>
                         <div class="project_tags">
                             <span class="tag">Agile</span>
                             <span class="tag">Scrum</span>
                             <span class="tag">MS Project</span>
                             <span class="tag">Jira</span>
                         </div>
-                        <a href="#" class="project_link">
-                            View Details <i class="ri-arrow-right-line"></i>
-                        </a>
+                        <a href="#" class="project_link">View Details <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </div>
 
                 <!-- Project 2 -->
                 <div class="project_card reveal" data-category="waterfall">
                     <div class="project_image"
-                        style="background: linear-gradient(135deg, #000000 0%, #141414 45%, #2a2a2a 75%, #383838 100%)">
+                        style="background: linear-gradient(135deg, #1a5632 0%, #2d7a4a 100%)">
                         <i class="ri-megaphone-line"></i>
                     </div>
                     <div class="project_content">
                         <h3>Marketing Campaign Launch</h3>
-                        <p>
-                            Coordinated a multi-channel marketing campaign involving 8 stakeholder groups.
-                            Successfully launched on time and within budget, achieving 150% of target engagement.
-                        </p>
+                        <p>Coordinated a multi-channel marketing campaign involving 8 stakeholder groups.
+                            Launched on time and within budget, achieving 150% of target engagement.</p>
                         <div class="project_tags">
                             <span class="tag">Waterfall</span>
-                            <span class="tag">Stakeholder Management</span>
+                            <span class="tag">Stakeholder Mgmt</span>
                             <span class="tag">Asana</span>
                         </div>
-                        <a href="#" class="project_link">
-                            View Details <i class="ri-arrow-right-line"></i>
-                        </a>
+                        <a href="#" class="project_link">View Details <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </div>
 
                 <!-- Project 3 -->
                 <div class="project_card reveal" data-category="lean">
                     <div class="project_image"
-                        style="background: linear-gradient(135deg, #050505 0%, #111111 40%, #1f1f1f 70%, #2e2e2e 100%)">
+                        style="background: linear-gradient(135deg, #0d3b1e 0%, #1a6b3c 100%)">
                         <i class="ri-settings-3-line"></i>
                     </div>
                     <div class="project_content">
                         <h3>Process Improvement Initiative</h3>
-                        <p>
-                            Spearheaded a Lean Six Sigma project that streamlined operational processes,
-                            resulting in 20% cost reduction and 30% improvement in efficiency metrics.
-                        </p>
+                        <p>Spearheaded a Lean Six Sigma project that streamlined operational processes,
+                            resulting in 20% cost reduction and 30% improvement in efficiency.</p>
                         <div class="project_tags">
                             <span class="tag">Lean Six Sigma</span>
                             <span class="tag">Process Optimization</span>
                             <span class="tag">Trello</span>
                         </div>
-                        <a href="#" class="project_link">
-                            View Details <i class="ri-arrow-right-line"></i>
-                        </a>
+                        <a href="#" class="project_link">View Details <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </div>
 
                 <!-- Project 4 -->
                 <div class="project_card reveal" data-category="agile">
                     <div class="project_image"
-                        style="background: linear-gradient(135deg, #0a0a0a 0%, #1c1c1c 50%, #303030 80%, #424242 100%)">
+                        style="background: linear-gradient(135deg, #14532d 0%, #22833a 100%)">
                         <i class="ri-rocket-line"></i>
                     </div>
                     <div class="project_content">
                         <h3>Product Development Project</h3>
-                        <p>
-                            Managed a $500K product development initiative using Scrum framework.
-                            Delivered MVP in 3 sprints with high customer satisfaction scores.
-                        </p>
+                        <p>Managed a $500K product development initiative using Scrum framework.
+                            Delivered MVP in 3 sprints with high customer satisfaction scores.</p>
                         <div class="project_tags">
                             <span class="tag">Scrum</span>
-                            <span class="tag">Product Management</span>
+                            <span class="tag">Product Mgmt</span>
                             <span class="tag">Monday.com</span>
                         </div>
-                        <a href="#" class="project_link">
-                            View Details <i class="ri-arrow-right-line"></i>
-                        </a>
+                        <a href="#" class="project_link">View Details <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Skills Section -->
-        <section id="skills">
+    <!-- ═══════════════════════════════
+         BLOG SECTION
+         ═══════════════════════════════ -->
+    <section class="blog_section" id="blog">
+        <div class="container">
             <div class="section_header">
-                <h2>Skills & <span class="gradient_text">Expertise</span></h2>
-                <p>Comprehensive skill set in project management methodologies, tools, and soft skills</p>
-            </div>
-            <div class="skills_container">
-                <!-- PM Methodologies -->
-                <div class="skill_category reveal">
-                    <h3><i class="ri-flow-chart"></i> PM Methodologies</h3>
-                    <div class="skills_grid">
-                        <div class="skill_item">
-                            <i class="ri-refresh-line"></i>
-                            <p>Agile/Scrum</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-water-flash-line"></i>
-                            <p>Waterfall</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-shield-check-line"></i>
-                            <p>PRINCE2</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-bar-chart-box-line"></i>
-                            <p>Lean Six Sigma</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-git-merge-line"></i>
-                            <p>Hybrid Approach</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-kanban-view"></i>
-                            <p>Kanban</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tools & Software -->
-                <div class="skill_category reveal">
-                    <h3><i class="ri-tools-line"></i> Tools & Software</h3>
-                    <div class="skills_grid">
-                        <div class="skill_item">
-                            <i class="ri-microsoft-line"></i>
-                            <p>MS Project</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-trello-line"></i>
-                            <p>Jira</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-task-line"></i>
-                            <p>Asana</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-trello-fill"></i>
-                            <p>Trello</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-calendar-check-line"></i>
-                            <p>Monday.com</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-table-line"></i>
-                            <p>Smartsheet</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-slack-line"></i>
-                            <p>Slack</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-file-excel-line"></i>
-                            <p>MS Office Suite</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-bar-chart-box-line"></i>
-                            <p>SPSS</p>
-                        </div>
-
-                        <div class="skill_item">
-                            <i class="ri-survey-line"></i>
-                            <p>KOBO</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Soft Skills -->
-                <div class="skill_category reveal">
-                    <h3><i class="ri-user-star-line"></i> Soft Skills</h3>
-                    <div class="skills_grid">
-                        <div class="skill_item">
-                            <i class="ri-team-line"></i>
-                            <p>Leadership</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-chat-3-line"></i>
-                            <p>Communication</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-group-line"></i>
-                            <p>Stakeholder Mgmt</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-alert-line"></i>
-                            <p>Risk Management</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-money-dollar-circle-line"></i>
-                            <p>Budget Management</p>
-                        </div>
-                        <div class="skill_item">
-                            <i class="ri-hand-heart-line"></i>
-                            <p>Team Building</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Certifications Section -->
-        <!-- <section id="certifications">
-            <div class="section_header">
-                <h2>Certifications & <span class="gradient_text">Credentials</span></h2>
-                <p>Professional certifications demonstrating expertise in project management</p>
-            </div>
-            <div class="cert_grid">
-                <div class="cert_card reveal">
-                    <div class="cert_icon">
-                        <i class="ri-award-line"></i>
-                    </div>
-                    <h3>PMP</h3>
-                    <p>Project Management Professional</p>
-                    <p class="cert_org">PMI — Project Management Institute</p>
-                </div>
-                <div class="cert_card reveal">
-                    <div class="cert_icon">
-                        <i class="ri-medal-line"></i>
-                    </div>
-                    <h3>CAPM</h3>
-                    <p>Certified Associate in Project Management</p>
-                    <p class="cert_org">PMI — Project Management Institute</p>
-                </div>
-                <div class="cert_card reveal">
-                    <div class="cert_icon">
-                        <i class="ri-trophy-line"></i>
-                    </div>
-                    <h3>PMI-ACP</h3>
-                    <p>Agile Certified Practitioner</p>
-                    <p class="cert_org">PMI — Project Management Institute</p>
-                </div>
-                <div class="cert_card reveal">
-                    <div class="cert_icon">
-                        <i class="ri-shield-star-line"></i>
-                    </div>
-                    <h3>CSM</h3>
-                    <p>Certified Scrum Master</p>
-                    <p class="cert_org">Scrum Alliance</p>
-                </div>
-                <div class="cert_card reveal">
-                    <div class="cert_icon">
-                        <i class="ri-vip-crown-line"></i>
-                    </div>
-                    <h3>PRINCE2</h3>
-                    <p>PRINCE2 Foundation Certified</p>
-                    <p class="cert_org">Axelos / PeopleCert</p>
-                </div>
-            </div>
-        </section> -->
-
-
-        <!-- Blog/Resources Section -->
-        <section id="blog">
-            <div class="section_header">
-                <h2>Blog & <span class="gradient_text">Resources</span></h2>
-                <p>Project Management tips, best practices, and industry insights</p>
+                <div class="section_label"><span class="dash"></span> Articles</div>
+                <h2>Blog & <span class="accent">Resources</span></h2>
+                <p>Project management tips, best practices, and industry insights</p>
             </div>
             <div class="blog_grid" data-component="blog-container">
-                <!-- Blog Post 1 -->
                 <article class="blog_card reveal">
                     <div class="blog_image">
                         <i class="ri-book-line"></i>
@@ -544,16 +499,13 @@
                             <span class="blog_date">Mar 10, 2026</span>
                         </div>
                         <h3>Mastering Agile Sprint Planning: A Complete Guide</h3>
-                        <p>Learn the essential techniques for effective sprint planning, including velocity estimation,
-                            user story refinement, and capacity planning.</p>
+                        <p>Learn the essential techniques for effective sprint planning, including velocity estimation
+                            and capacity planning.</p>
                         <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </article>
-
-                <!-- Blog Post 2 -->
                 <article class="blog_card reveal">
-                    <div class="blog_image"
-                        style="background: linear-gradient(135deg, #000000 0%, #141414 45%, #2a2a2a 75%, #383838 100%)">
+                    <div class="blog_image" style="background: linear-gradient(135deg, #1a5632, #2d7a4a)">
                         <i class="ri-team-line"></i>
                     </div>
                     <div class="blog_content">
@@ -563,33 +515,27 @@
                         </div>
                         <h3>Building High-Performance Project Teams</h3>
                         <p>Explore strategies for recruiting, developing, and retaining top talent on your project
-                            teams. Learn about team dynamics and collaboration.</p>
+                            teams.</p>
                         <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </article>
-
-                <!-- Blog Post 3 -->
                 <article class="blog_card reveal">
-                    <div class="blog_image"
-                        style="background: linear-gradient(135deg, #050505 0%, #111111 40%, #1f1f1f 70%, #2e2e2e 100%)">
+                    <div class="blog_image" style="background: linear-gradient(135deg, #0d3b1e, #1a6b3c)">
                         <i class="ri-alert-line"></i>
                     </div>
                     <div class="blog_content">
                         <div class="blog_meta">
-                            <span class="blog_category">Risk Management</span>
+                            <span class="blog_category">Risk</span>
                             <span class="blog_date">Mar 05, 2026</span>
                         </div>
                         <h3>Risk Management Best Practices for Project Managers</h3>
-                        <p>Understand how to identify, assess, and mitigate project risks effectively. Learn about risk
-                            registers and contingency planning.</p>
+                        <p>Understand how to identify, assess, and mitigate project risks effectively with risk
+                            registers.</p>
                         <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </article>
-
-                <!-- Blog Post 4 -->
                 <article class="blog_card reveal">
-                    <div class="blog_image"
-                        style="background: linear-gradient(135deg, #0a0a0a 0%, #1c1c1c 50%, #303030 80%, #424242 100%)">
+                    <div class="blog_image" style="background: linear-gradient(135deg, #14532d, #22833a)">
                         <i class="ri-bar-chart-line"></i>
                     </div>
                     <div class="blog_content">
@@ -599,17 +545,91 @@
                         </div>
                         <h3>Key Performance Indicators for Project Success</h3>
                         <p>Discover essential KPIs that project managers should track, including SPI, CPI, and
-                            stakeholder satisfaction metrics.</p>
+                            satisfaction metrics.</p>
                         <a href="#" class="read_more">Read Article <i class="ri-arrow-right-line"></i></a>
                     </div>
                 </article>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Contact Section -->
-        <section id="contact">
+    <!-- ═══════════════════════════════
+         TESTIMONIALS SECTION
+         ═══════════════════════════════ -->
+    <section class="testimonials_section" id="testimonials">
+        <div class="container">
             <div class="section_header">
-                <h2>Get In <span class="gradient_text">Touch</span></h2>
+                <div class="section_label"><span class="dash"></span> Testimonials</div>
+                <h2>What People <span class="accent">Say</span></h2>
+                <p>Feedback from colleagues, mentors, and collaborators</p>
+            </div>
+            <div class="testimonials_grid stagger-children">
+                <div class="testimonial_card reveal">
+                    <div class="testimonial_stars">
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                    </div>
+                    <p class="testimonial_text">"Dharshana's ability to coordinate complex projects while keeping the
+                        team motivated is remarkable. She consistently delivers results that exceed expectations."</p>
+                    <div class="testimonial_author">
+                        <div class="testimonial_avatar">RK</div>
+                        <div class="testimonial_author_info">
+                            <h4>Rajesh Kumar</h4>
+                            <p>Senior PM, Tech Solutions</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial_card reveal">
+                    <div class="testimonial_stars">
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                    </div>
+                    <p class="testimonial_text">"Her strategic approach to risk management saved our project from
+                        potential delays. A true professional who leads by example and inspires her team."</p>
+                    <div class="testimonial_author">
+                        <div class="testimonial_avatar">SP</div>
+                        <div class="testimonial_author_info">
+                            <h4>Sarah Perera</h4>
+                            <p>Director, Operations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial_card reveal">
+                    <div class="testimonial_stars">
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-fill"></i>
+                        <i class="ri-star-half-fill"></i>
+                    </div>
+                    <p class="testimonial_text">"Working with Dharshana on the ERP implementation was a great
+                        experience. Her organizational skills and attention to detail are exceptional."</p>
+                    <div class="testimonial_author">
+                        <div class="testimonial_avatar">MF</div>
+                        <div class="testimonial_author_info">
+                            <h4>Mohamed Faiz</h4>
+                            <p>University Mentor</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         CONTACT SECTION
+         ═══════════════════════════════ -->
+    <section class="contact_section" id="contact">
+        <div class="container">
+            <div class="section_header">
+                <div class="section_label"><span class="dash"></span> Get In Touch</div>
+                <h2>Let's <span class="accent">Connect</span></h2>
                 <p>Let's discuss how I can contribute to your organization's success</p>
             </div>
             <div class="contact_container">
@@ -658,24 +678,33 @@
                 <form class="contact_form" id="contact-form" novalidate>
                     <!-- CSRF Token -->
                     <input type="hidden" id="csrf_token" name="csrf_token" value="">
+                    <!-- Honeypot -->
+                    <div class="hp_field" aria-hidden="true">
+                        <label for="hp_website">Website</label>
+                        <input type="text" id="hp_website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
 
                     <div class="form_group">
                         <label for="name">Your Name</label>
-                        <input type="text" id="name" name="name" required maxlength="100" placeholder="Dharsha Dharsh"
-                            autocomplete="name">
+                        <input type="text" id="name" name="name" required maxlength="100"
+                            placeholder="Enter your name" autocomplete="name">
+                        <div class="form_error" id="name-error">Please enter your name</div>
                     </div>
                     <div class="form_group">
                         <label for="email">Your Email</label>
                         <input type="email" id="email" name="email" required maxlength="255"
-                            placeholder="Dharsh@example.com" autocomplete="email">
+                            placeholder="Enter your email" autocomplete="email">
+                        <div class="form_error" id="email-error">Please enter a valid email</div>
                     </div>
                     <div class="form_group">
                         <label for="message">Your Message</label>
                         <textarea id="message" name="message" required maxlength="5000"
-                            placeholder="Tell me about your project or opportunity..." autocomplete="off"></textarea>
+                            placeholder="Tell me about your project or opportunity..."
+                            autocomplete="off"></textarea>
+                        <div class="form_error" id="message-error">Please enter your message</div>
                     </div>
 
-                    <!-- Human Verification Anti-Bot Checkpoint -->
+                    <!-- Human Verification Widget -->
                     <div class="human_verify_widget" id="human-verify-widget">
                         <div class="verify_checkbox_container">
                             <input type="checkbox" id="verify_human_checkbox" class="verify_checkbox">
@@ -684,7 +713,7 @@
                                     <i class="ri-check-line check_icon"></i>
                                     <span class="verify_spinner"></span>
                                 </span>
-                                <span class="verify_text" id="verify-text">Verify you are human (not a robot)</span>
+                                <span class="verify_text" id="verify-text">Verify you are human</span>
                             </label>
                         </div>
                         <div class="verify_brand">
@@ -695,18 +724,58 @@
 
                     <button type="submit" class="submit_btn" id="submit-btn">
                         <span>Send Message</span>
-                        <i class="ri-send-plane-line" style="margin-left: 0.5rem;"></i>
+                        <i class="ri-send-plane-line"></i>
+                        <div class="spinner"></div>
                     </button>
                 </form>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Footer -->
-        <footer>
-            <div class="footer_container">
-                <a href="#home" class="back_to_top">
-                    <i class="ri-arrow-up-line"></i> Back to Top
-                </a>
+    <!-- ═══════════════════════════════
+         FOOTER
+         ═══════════════════════════════ -->
+    <footer>
+        <div class="footer_container">
+            <a href="#home" class="back_to_top">
+                <i class="ri-arrow-up-line"></i> Back to Top
+            </a>
+
+            <div class="footer_top">
+                <div>
+                    <div class="footer_brand">
+                        <span class="logo_icon"><i class="ri-circle-fill"></i></span> Dharshana.
+                    </div>
+                    <p class="footer_description">
+                        Passionate project management professional driving organizational success through strategic
+                        planning and agile execution.
+                    </p>
+                </div>
+                <div class="footer_links_group">
+                    <h4>Quick Links</h4>
+                    <div class="footer_links">
+                        <a href="#home">Home</a>
+                        <a href="#about">About</a>
+                        <a href="#projects">Projects</a>
+                        <a href="#contact">Contact</a>
+                    </div>
+                </div>
+                <div class="footer_links_group">
+                    <h4>Services</h4>
+                    <div class="footer_links">
+                        <a href="#services">Project Planning</a>
+                        <a href="#services">Agile Management</a>
+                        <a href="#services">Risk Analysis</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer_divider"></div>
+
+            <div class="footer_bottom">
+                <p class="footer_text">
+                    © 2026 Dharsha Dharshana. All rights reserved.
+                </p>
                 <div class="footer_socials">
                     <a href="https://www.linkedin.com/in/dharsha-dharshana-bb4347364" target="_blank"
                         rel="noopener noreferrer" class="social_link" aria-label="LinkedIn Profile">
@@ -716,19 +785,13 @@
                         <i class="ri-mail-line"></i>
                     </a>
                 </div>
-                <p class="footer_text">
-                    © 2026 Dharsha Dharshana. All rights reserved. •
-                    <!-- <span class="footer_verified_link" data-trigger="verified-modal"
-                        title="Click to view Human Verification Certificate">
-                        <i class="ri-shield-check-fill"></i> Verified by Human
-                    </span>-->
-                </p>
             </div>
-        </footer>
+        </div>
+    </footer>
 
-    </div>
-
-    <!-- Verified by Human Certificate Modal -->
+    <!-- ═══════════════════════════════
+         VERIFIED BY HUMAN MODAL
+         ═══════════════════════════════ -->
     <div class="verified_modal_overlay" id="verified-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true"
         aria-labelledby="modal-title">
         <div class="verified_modal_card">
@@ -813,6 +876,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast" id="toast"></div>
 
     <!-- JavaScript -->
     <script src="script.js"></script>

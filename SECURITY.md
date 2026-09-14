@@ -1,8 +1,35 @@
-# Security Implementation Guide
+# 🛡️ Security Implementation Guide
 
 ## Overview
 
-This document outlines all security measures implemented in the portfolio website to protect against common web vulnerabilities.
+This document outlines all security measures implemented in Dharshana's portfolio website to protect against common web vulnerabilities, bot attacks, and data theft.
+
+**Security Level**: Production-Enhanced  
+**Last Updated**: September 12, 2026  
+**Total Security Gates (Form)**: 8  
+
+---
+
+## Security Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    SECURITY LAYERS                       │
+├──────────────────────────────────────────────────────────┤
+│  Layer 1 │ HTTP Security Headers (CSP, X-Frame, etc.)   │
+│  Layer 2 │ Input Validation & Sanitization               │
+│  Layer 3 │ CSRF Token Protection                         │
+│  Layer 4 │ XSS & Malicious Pattern Detection             │
+│  Layer 5 │ Honeypot Anti-Bot Trap                        │
+│  Layer 6 │ Submission Timing Analysis                    │
+│  Layer 7 │ Rate Limiting (3 req/min)                     │
+│  Layer 8 │ HumanGuard Interactive Verification           │
+│  Layer 9 │ External Link Safety (noopener/noreferrer)    │
+│  Layer 10│ Content Protection (Image anti-theft)         │
+│  Layer 11│ Paste Content Scanning                        │
+│  Layer 12│ Global Error Handling                         │
+└──────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -11,27 +38,69 @@ This document outlines all security measures implemented in the portfolio websit
 ### Implementation
 Added to `<head>` of index.html:
 ```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none';">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
+  font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com;
+  img-src 'self' data: https:;
+  connect-src 'self' http://localhost:5000;
+  frame-ancestors 'none';
+  base-uri 'self';
+  form-action 'self' http://localhost:5000;
+  upgrade-insecure-requests;
+">
 ```
 
-### Benefits
-- **default-src 'self'**: Only allows resources from same origin by default
-- **script-src**: Only allows local scripts and CDN scripts from trusted domain
-- **style-src**: Only allows local and CDN stylesheets
-- **font-src**: Only allows local and CDN fonts
-- **img-src**: Allows local images and HTTPS images
-- **connect-src 'self'**: Only allows API calls to same origin
-- **frame-ancestors 'none'**: Prevents clickjacking by disallowing framing
+### Directive Breakdown
+| Directive | Value | Purpose |
+|-----------|-------|---------|
+| `default-src` | `'self'` | Only same-origin resources by default |
+| `script-src` | `'self' 'unsafe-inline'` | Local scripts + inline (for dynamic styles) |
+| `style-src` | `'self'` + CDNs | Local + trusted CDN stylesheets |
+| `font-src` | `'self'` + CDNs | Local + Google/JSDelivr fonts |
+| `img-src` | `'self' data: https:` | Local images, data URIs, HTTPS images |
+| `connect-src` | `'self' localhost:5000` | API calls restricted to own origin + backend |
+| `frame-ancestors` | `'none'` | **Prevents clickjacking** — no framing allowed |
+| `base-uri` | `'self'` | Prevents base tag hijacking |
+| `form-action` | `'self' localhost:5000` | Forms can only submit to own domain + backend |
+| `upgrade-insecure-requests` | — | Auto-upgrades HTTP to HTTPS |
 
-### Future Enhancement
-For production, add CSP headers in backend:
+---
+
+## 2. HTTP Security Headers
+
+### Implemented via `<meta>` tags
+```html
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="Permissions-Policy" content="
+  camera=(), microphone=(), geolocation=(), payment=(),
+  usb=(), magnetometer=(), gyroscope=(), accelerometer=()
+">
 ```
-Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; ...
+
+| Header | Purpose |
+|--------|---------|
+| `X-Content-Type-Options: nosniff` | Prevents MIME-type sniffing attacks |
+| `X-Frame-Options: DENY` | Prevents clickjacking via iframes |
+| `Referrer-Policy` | Controls referrer info leakage |
+| `Permissions-Policy` | Disables camera, mic, GPS, payment, USB, sensors |
+
+### Recommended Backend Headers (Production)
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
 
 ---
 
-## 2. CSRF (Cross-Site Request Forgery) Protection
+## 3. CSRF (Cross-Site Request Forgery) Protection
 
 ### Implementation
 ```javascript
@@ -45,428 +114,344 @@ class SecurityManager {
 }
 ```
 
-### Usage
-1. **Token Generation**: Generated on form load
-2. **Token Storage**: Stored in `sessionStorage` and hidden form field
-3. **Token Validation**: Must be included in form submission
-
-### Backend Implementation (Example - Node.js/Express)
-```javascript
-const session = require('express-session');
-const csrf = require('csurf');
-
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    secure: true,
-    httpOnly: true,
-    sameSite: 'Strict'
-}));
-
-app.use(csrf({ cookie: false }));
-
-app.post('/api/contact', (req, res) => {
-    // Verify CSRF token
-    if (req.body.csrf_token !== req.csrfToken()) {
-        return res.status(403).json({ error: 'CSRF token invalid' });
-    }
-    // Process form...
-});
-```
+### Flow
+1. **Generation**: 64-character hex token created on page load using `crypto.getRandomValues`
+2. **Storage**: Stored in hidden form field + `sessionStorage`
+3. **Rotation**: New token generated after each successful submission
+4. **Verification**: Token in form must match token in `sessionStorage` (Security Gate 8)
 
 ---
 
-## 3. XSS (Cross-Site Scripting) Prevention
+## 4. XSS (Cross-Site Scripting) Prevention
 
 ### Input Sanitization
 ```javascript
-class SecurityManager {
-    static sanitizeHTML(str) {
-        const div = document.createElement('div');
-        div.textContent = str;  // textContent escapes all HTML
-        return div.innerHTML;
-    }
+static sanitizeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;  // textContent escapes all HTML
+    return div.innerHTML;
 }
 ```
 
-**Why this works:**
-- `textContent` treats the entire string as plain text
-- Converting back to `innerHTML` gives us the escaped version
-- Any HTML tags are converted to their text representation
-
-### Production Enhancement - Use DOMPurify
+### Malicious Pattern Detection
 ```javascript
-import DOMPurify from 'dompurify';
-
-// Configure DOMPurify to remove all HTML
-const cleaned = DOMPurify.sanitize(userInput, { 
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [] 
-});
+static containsMaliciousPatterns(str) {
+    const patterns = [
+        /<script[^>]*>/i,
+        /javascript\s*:/i,
+        /on\w+\s*=\s*["']/i,
+        /data\s*:\s*text\/html/i,
+        /<iframe[^>]*>/i,
+        /<object[^>]*>/i,
+        /<embed[^>]*>/i,
+        /<form[^>]*>/i,
+        /eval\s*\(/i,
+        /expression\s*\(/i,
+        /url\s*\(\s*["']?javascript/i,
+        /<svg[^>]*on\w+/i
+    ];
+    return patterns.some(pattern => pattern.test(str));
+}
 ```
 
-### Real-Time Sanitization
-```javascript
-input.addEventListener('input', (e) => {
-    if (input.type !== 'email') {
-        input.value = SecurityManager.sanitizeHTML(input.value);
-    }
-});
-```
+### Three-Layer XSS Defense
+1. **Real-time sanitization** — Input values are sanitized as user types
+2. **Paste scanning** — Pasted content is checked for malicious patterns and blocked
+3. **Pre-submission check** — All field values run through pattern detection before API call
 
 ---
 
-## 4. Input Validation
+## 5. Input Validation
 
 ### Name Validation
-```javascript
-static isValidName(name) {
-    const nameRegex = /^[a-zA-Z\s'-]{2,100}$/;
-    return nameRegex.test(name.trim());
-}
-```
-- Only allows: letters, spaces, hyphens, apostrophes
-- Minimum 2 characters, maximum 100
-- Prevents script injection attempts
+- Regex: `/^[a-zA-Z\s'-]{2,100}$/`
+- Allows: letters, spaces, hyphens, apostrophes
+- Min: 2 characters, Max: 100 characters
+- HTML `maxlength="100"` attribute enforced
 
 ### Email Validation
-```javascript
-static isValidEmail(email) {
-    const emailRegex = /^[^@\s]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
-    return emailRegex.test(email) && email.length <= 255;
-}
-```
-- RFC-compliant email format
-- Maximum 255 characters (email standard)
-- Local part max 64 characters
+- Regex: `/^[^@\s]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/`
+- RFC-compliant format
+- Max 255 characters total, local part max 64
+- HTML `maxlength="255"` attribute enforced
 
 ### Message Validation
-```javascript
-static isValidMessage(message) {
-    const trimmed = message.trim();
-    return trimmed.length >= 10 && trimmed.length <= 5000;
-}
-```
-- Minimum 10 characters (prevents spam)
-- Maximum 5000 characters
-- Prevents empty messages
-
-### HTML Input Attribute Validation
-```html
-<input type="text" id="name" maxlength="100" />
-<input type="email" id="email" maxlength="255" />
-<textarea id="message" maxlength="5000"></textarea>
-```
+- Min: 10 characters (prevents trivial spam)
+- Max: 5000 characters
+- HTML `maxlength="5000"` attribute enforced
 
 ---
 
-## 5. HTTP Security Headers
+## 6. Honeypot Anti-Bot Protection
 
-### Implemented via `<meta>` tags
-```html
-<!-- Prevent MIME type sniffing -->
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-<!-- Control referrer information -->
-<meta name="referrer" content="strict-origin-when-cross-origin">
-```
-
-### Recommended Backend Headers
+### Implementation
 ```javascript
-// Express.js with helmet
-const helmet = require('helmet');
-
-app.use(helmet());
-app.use(helmet.contentSecurityPolicy({
-    directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
-        styleSrc: ["'self'", "https://cdn.jsdelivr.net"],
-        imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'"]
+class HoneypotProtection {
+    constructor(formElement) {
+        this.fieldName = '_website_url'; // Looks legitimate to bots
     }
-}));
-```
 
-### Additional Headers to Set on Backend
-```
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-X-XSS-Protection: 1; mode=block
-Strict-Transport-Security: max-age=31536000; includeSubDomains
-Permissions-Policy: microphone=(), camera=(), geolocation=()
-```
-
----
-
-## 6. Form Security
-
-### HTML5 Validation Attributes
-```html
-<form novalidate>
-    <input type="text" required maxlength="100" autocomplete="name" />
-    <input type="email" required maxlength="255" autocomplete="email" />
-    <textarea required maxlength="5000" autocomplete="off"></textarea>
-    <!-- novalidate allows custom validation -->
-</form>
-```
-
-### JavaScript Validation
-```javascript
-async handleSubmit(e) {
-    e.preventDefault();  // Prevent default submission
-    
-    // Manual validation
-    if (!SecurityManager.isValidName(name)) {
-        showNotification('Invalid name', 'error');
-        return;
+    init() {
+        // Inject invisible field — only bots will fill it
+        const honeypot = document.createElement('div');
+        honeypot.style.cssText = 'position:absolute;left:-9999px;...';
+        honeypot.innerHTML = '<input type="text" name="_website_url" ...>';
+        this.form.prepend(honeypot);
     }
-    
-    // Sanitize before sending
-    const cleanData = {
-        name: SecurityManager.sanitizeHTML(name),
-        email: email,
-        message: SecurityManager.sanitizeHTML(message)
-    };
-    
-    // Submit with CSRF token
-    await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-Token': csrfToken
-        },
-        body: JSON.stringify(cleanData)
-    });
+
+    isBot() {
+        return field && field.value.length > 0;
+    }
 }
 ```
 
----
-
-## 7. Accessibility & Security
-
-### ARIA Attributes
-```html
-<div role="alert" aria-live="polite">
-    <!-- Notification message -->
-</div>
-```
-
-**Benefits:**
-- Screen readers announce important messages
-- Improved security UX for accessibility tools
-- Better error communication
+### How It Works
+1. A hidden input field named `_website_url` is injected into the form
+2. The field is positioned off-screen, invisible to human users
+3. Automated bots see the field and fill it with data
+4. If the field has any value on submit, the submission is **silently rejected**
+5. The bot receives a fake "success" message to prevent retry loops
 
 ---
 
-## 8. Error Handling
+## 7. Submission Timing Analysis
 
-### Safe Error Messages
+### Implementation
 ```javascript
-// ❌ DON'T: Expose sensitive information
-console.error('Database connection failed to user123');
+class TimingProtection {
+    constructor(minSubmitTimeMs = 3000) {
+        this.pageLoadTime = Date.now();
+        this.firstInteractionTime = null;
+        // Records keydown, click, touchstart
+    }
 
-// ✅ DO: Generic error messages
-showNotification('Failed to send message. Please try again.', 'error');
+    isSuspiciouslyFast() {
+        return (Date.now() - this.pageLoadTime) < this.minSubmitTimeMs;
+    }
+
+    hasNoInteraction() {
+        return this.firstInteractionTime === null;
+    }
+}
 ```
 
-### Global Error Handling
+### Detection Logic
+| Check | Threshold | Action |
+|-------|-----------|--------|
+| Time since page load | < 3 seconds | Reject with "Please take a moment..." |
+| No keyboard/click/touch interaction | Zero events | Silent reject with fake success |
+
+---
+
+## 8. Rate Limiting
+
+### Implementation
+```javascript
+class RateLimiter {
+    constructor(maxAttempts = 3, windowMs = 60000) {
+        // 3 submissions per 60-second window
+    }
+
+    isAllowed() {
+        // Removes expired timestamps, checks count
+    }
+
+    getRetryAfterSeconds() {
+        // Calculates remaining cooldown time
+    }
+}
+```
+
+### Configuration
+- **Max attempts**: 3 per window
+- **Window**: 60 seconds (sliding)
+- **User feedback**: Shows exact seconds until retry is allowed
+
+---
+
+## 9. External Link Safety
+
+### Implementation
+```javascript
+class ExternalLinkProtector {
+    init() {
+        // Ensure all target="_blank" links have noopener/noreferrer
+        document.querySelectorAll('a[target="_blank"]').forEach(link => {
+            // Add noopener + noreferrer to rel attribute
+        });
+
+        // MutationObserver for dynamically added links
+        new MutationObserver(...).observe(document.body, { childList: true, subtree: true });
+    }
+}
+```
+
+### Protection Against
+- **`window.opener` exploitation** — `noopener` prevents opened page from accessing `window.opener`
+- **Referrer leakage** — `noreferrer` prevents sending referrer information
+- **Dynamic links** — MutationObserver catches links added after page load
+
+---
+
+## 10. Content Protection
+
+### Implementation
+```javascript
+class ContentProtection {
+    init() {
+        // Disable right-click on images
+        img.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Prevent drag-and-drop of images
+        img.setAttribute('draggable', 'false');
+    }
+}
+```
+
+### Protections
+- Right-click on images is blocked with a notification
+- Image drag-and-drop is disabled
+- Deters casual content theft of portfolio photos
+
+---
+
+## 11. CDN Resource Integrity
+
+### Implementation
+```html
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
+    rel="stylesheet" crossorigin="anonymous">
+```
+
+### Benefits
+- `crossorigin="anonymous"` enables CORS-safe loading
+- For production, add SRI hashes to verify CDN file integrity
+
+---
+
+## 12. Form Submission Security Pipeline
+
+The contact form enforces **8 sequential security gates** before any data is sent:
+
+```
+User clicks "Send" →
+  Gate 1: Honeypot Check     → Is bot? → Silent reject
+  Gate 2: Timing Check       → Too fast? → Reject
+  Gate 3: Interaction Check  → No clicks/keys? → Silent reject
+  Gate 4: Rate Limit Check   → Over limit? → Reject with cooldown
+  Gate 5: Field Validation   → Invalid data? → Reject with message
+  Gate 6: Malicious Pattern  → XSS detected? → Reject
+  Gate 7: HumanGuard         → Not verified? → Shake + reject
+  Gate 8: CSRF Token         → Mismatch? → Reject
+  ✓ All passed → Sanitize → Send to API
+```
+
+---
+
+## 13. Data Privacy
+
+| Measure | Implementation |
+|---------|---------------|
+| No localStorage usage | CSRF tokens in sessionStorage only |
+| Session-scoped data | Cleared on browser close |
+| No form data persistence | Data sent to server, not stored locally |
+| No tracking by default | No analytics scripts loaded |
+| Referrer control | `strict-origin-when-cross-origin` |
+| Permissions blocked | Camera, mic, GPS, payment, USB all disabled |
+
+---
+
+## 14. Error Handling
+
+### Global Error Handlers
 ```javascript
 window.addEventListener('error', (event) => {
     console.error('Global error:', event.error);
-    // Send to error tracking service (don't expose to user)
 });
 
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
-    // Handle gracefully
 });
 ```
 
+### Safe Error Messages
+- Users see generic messages like "Failed to send message"
+- Technical details only logged to console
+- No stack traces or internal details exposed to users
+
 ---
 
-## 9. Session Security
+## 15. Accessibility & Security
 
-### Secure Session Configuration
-```javascript
-const sessionConfig = {
-    secret: process.env.SESSION_SECRET,  // Long random string
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: true,        // HTTPS only
-        httpOnly: true,      // Not accessible via JavaScript
-        sameSite: 'Strict',  // CSRF protection
-        maxAge: 1800000      // 30 minutes
-    }
-};
+| Feature | Implementation |
+|---------|---------------|
+| ARIA roles | `role="alert"`, `aria-live="polite"` for notifications |
+| Modal accessibility | `aria-hidden`, `aria-modal`, `aria-labelledby` |
+| Keyboard navigation | ESC closes menus/modals |
+| Focus management | Proper `tabindex` on interactive elements |
+| Screen reader support | Error messages announced via live regions |
+
+---
+
+## 16. OWASP Top 10 Coverage
+
+| # | Vulnerability | Status | Implementation |
+|---|---------------|--------|----------------|
+| 1 | Injection | ✅ Protected | Input validation, sanitization, pattern detection |
+| 2 | Broken Authentication | N/A | No authentication in portfolio |
+| 3 | Sensitive Data Exposure | ✅ Protected | HTTPS upgrade, no local storage |
+| 4 | XML External Entities | ✅ Protected | No XML parsing |
+| 5 | Broken Access Control | N/A | No authentication |
+| 6 | Security Misconfiguration | ✅ Protected | CSP, security headers, permissions policy |
+| 7 | XSS | ✅ Protected | Sanitization, CSP, pattern detection, paste scanning |
+| 8 | Insecure Deserialization | ✅ Protected | No untrusted deserialization |
+| 9 | Known Vulnerable Components | ✅ Monitored | Regular audits recommended |
+| 10 | Insufficient Logging | ✅ Implemented | Console logging, global error handlers |
+
+---
+
+## 17. Production Deployment Checklist
+
+- [x] Content Security Policy configured
+- [x] X-Content-Type-Options: nosniff
+- [x] X-Frame-Options: DENY
+- [x] Permissions-Policy (camera, mic, GPS disabled)
+- [x] Referrer-Policy set
+- [x] CSRF token generation & validation
+- [x] XSS input sanitization (3-layer)
+- [x] Malicious pattern detection
+- [x] Honeypot anti-bot field
+- [x] Submission timing analysis
+- [x] Rate limiting (3 req/min)
+- [x] HumanGuard verification checkbox
+- [x] External link safety (noopener/noreferrer)
+- [x] Image content protection
+- [x] CDN crossorigin attributes
+- [x] Global error handling
+- [x] Paste content scanning
+- [ ] Add SRI hashes for CDN resources (production)
+- [ ] Enable HSTS on backend
+- [ ] Set up CORS properly on backend
+- [ ] Implement server-side rate limiting
+- [ ] Add error tracking service (Sentry/similar)
+
+---
+
+## 18. Console Security Indicator
+
+On page load, the following appears in the browser console:
+
+```
+🛡️ Security Layer Active
+  ✓ CSP Headers  ✓ CSRF Protection  ✓ XSS Prevention
+  ✓ Rate Limiter  ✓ Honeypot Trap  ✓ Timing Analysis
+  ✓ External Link Safety  ✓ Content Protection
+  ✓ Malicious Pattern Detection  ✓ Input Sanitization
 ```
 
 ---
 
-## 10. Password & Authentication Best Practices
-
-### If Adding Authentication
-```javascript
-// Never store passwords in JavaScript
-// Always use HTTPS
-// Implement rate limiting on login
-
-// Example with bcrypt (backend)
-const bcrypt = require('bcrypt');
-
-const hashedPassword = await bcrypt.hash(password, 10);
-const isValid = await bcrypt.compare(inputPassword, hashedPassword);
-```
-
----
-
-## 11. Data Privacy
-
-### Privacy Measures
-1. **No data persistence in localStorage**
-   - CSRF tokens only in sessionStorage
-   - Session cleared on browser close
-
-2. **Form data not stored**
-   - Contact form data only sent to server
-   - Not retained in browser
-
-3. **No analytics by default**
-   - If adding analytics, use privacy-focused option (Plausible, Fathom)
-
----
-
-## 12. Dependencies Security
-
-### Regular Audits
-```bash
-# Check for vulnerabilities
-npm audit
-
-# Fix automatically
-npm audit fix
-
-# Update packages
-npm update
-
-# Check outdated packages
-npm outdated
-```
-
-### Secure Dependencies
-Do NOT use:
-- Unmaintained packages
-- Packages with known vulnerabilities
-- Packages from untrusted sources
-
----
-
-## 13. HTTPS/TLS
-
-### Requirements
-- **MUST**: Always use HTTPS in production
-- **MUST**: Use valid SSL/TLS certificate
-- **MUST**: Redirect HTTP to HTTPS
-- **RECOMMENDED**: Use HTTP/2
-
-### Backend Configuration
-```javascript
-const https = require('https');
-const fs = require('fs');
-
-const options = {
-    key: fs.readFileSync('private-key.pem'),
-    cert: fs.readFileSync('certificate.pem')
-};
-
-https.createServer(options, app).listen(443);
-```
-
----
-
-## 14. Production Deployment Checklist
-
-- [ ] Enable HTTPS/SSL
-- [ ] Set all security headers
-- [ ] Enable CSP in backend
-- [ ] Implement CORS properly
-  ```javascript
-  const cors = require('cors');
-  app.use(cors({
-      origin: process.env.ALLOWED_ORIGIN,
-      credentials: true,
-      optionsSuccessStatus: 200
-  }));
-  ```
-- [ ] Set up rate limiting
-  ```javascript
-  const rateLimit = require('express-rate-limit');
-  const limiter = rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 100
-  });
-  app.use('/api/', limiter);
-  ```
-- [ ] Implement logging & monitoring
-- [ ] Set up error tracking
-- [ ] Regular security audits
-- [ ] Backup sensitive data
-- [ ] Keep dependencies updated
-- [ ] Monitor for breaches
-
----
-
-## 15. Common Vulnerabilities (OWASP Top 10)
-
-| Vulnerability | Status | Implementation |
-|---------------|--------|-----------------|
-| Injection | Protected | Input validation & sanitization |
-| Broken Authentication | N/A | No authentication yet |
-| Sensitive Data Exposure | Protected | HTTPS required, no storage |
-| XML External Entities (XXE) | Protected | No XML parsing |
-| Broken Access Control | N/A | No authentication yet |
-| Security Misconfiguration | Protected | CSP headers, security headers |
-| XSS | Protected | Input sanitization, CSP |
-| Insecure Deserialization | Protected | No untrusted deserialization |
-| Using Components with Known Vulnerabilities | Protected | Regular audits |
-| Insufficient Logging & Monitoring | Recommended | Error tracking needed |
-
----
-
-## 16. Testing Security
-
-### Manual Testing
-```bash
-# Test headers
-curl -i https://yoursite.com
-
-# Test CSP
-# Open DevTools Console → Check for CSP violations
-
-# Test input validation
-# Try: <script>alert(1)</script>
-# Should be sanitized
-```
-
-### Automated Testing
-```javascript
-// Example Jest test
-test('sanitizeHTML removes script tags', () => {
-    const dirty = '<script>alert("xss")</script>';
-    const clean = SecurityManager.sanitizeHTML(dirty);
-    expect(clean).not.toContain('<script>');
-});
-
-test('email validation rejects invalid emails', () => {
-    expect(SecurityManager.isValidEmail('test@')).toBe(false);
-    expect(SecurityManager.isValidEmail('test@domain.com')).toBe(true);
-});
-```
-
----
-
-## 17. Security Resources
+## 19. Security Resources
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [MDN Web Security](https://developer.mozilla.org/en-US/docs/Web/Security)
@@ -477,19 +462,9 @@ test('email validation rejects invalid emails', () => {
 
 ---
 
-## 18. Support & Maintenance
+## 20. Reporting Vulnerabilities
 
-### For Questions
-Contact security team or refer to [SECURITY.md](./SECURITY.md)
-
-### Reporting Vulnerabilities
-If you find a security issue:
-1. DO NOT post publicly
-2. Email security@yoursite.com with details
+If you discover a security issue:
+1. **DO NOT** post publicly
+2. Email the portfolio owner with details
 3. Allow 90 days for patch before disclosure
-
----
-
-**Last Updated**: March 11, 2026
-**Security Level**: Enhanced
-**Status**: Production Ready
