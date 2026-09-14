@@ -91,6 +91,10 @@
         // SessionStorage not available — continue
     }
 
+    // Record form load time for bot-detection timing check
+    const formLoadTime = Date.now();
+    const MIN_HUMAN_FILL_TIME_MS = 3000; // Humans take at least 3 seconds to fill a form
+
 
     // ═══════════════════════════════════════
     // NAVIGATION
@@ -389,7 +393,17 @@
             // ── Security Check 2: Honeypot ──
             const honeypot = document.getElementById('hp_website');
             if (honeypot && honeypot.value.trim() !== '') {
-                // Bot detected — silently fail
+                // Bot detected — silently pretend success
+                showToast('Message sent successfully!', 'success');
+                contactForm.reset();
+                return;
+            }
+
+            // ── Security Check 2b: Form Timing ──
+            // Bots submit instantly; real humans take time to type
+            const timeTaken = Date.now() - formLoadTime;
+            if (timeTaken < MIN_HUMAN_FILL_TIME_MS) {
+                // Submitted too fast — likely a bot; silently pretend success
                 showToast('Message sent successfully!', 'success');
                 contactForm.reset();
                 return;
@@ -527,6 +541,12 @@
                         input.classList.remove('invalid');
                     }
                 }
+
+                // JS-level maxlength enforcement (defense-in-depth)
+                const maxLen = parseInt(input.getAttribute('maxlength'), 10);
+                if (maxLen && input.value.length > maxLen) {
+                    input.value = input.value.slice(0, maxLen);
+                }
             });
         });
     }
@@ -559,29 +579,58 @@
     // ADDITIONAL SECURITY MEASURES
     // ═══════════════════════════════════════
 
-    // Prevent right-click context menu on images (optional portfolio protection)
+    // Prevent right-click context menu on images (portfolio protection)
     document.querySelectorAll('img').forEach(img => {
         img.addEventListener('contextmenu', (e) => {
             e.preventDefault();
         });
     });
 
-    // Detect and warn about suspicious console activity
-    const devToolsWarning = () => {
-        console.log(
-            '%c⚠ Security Notice',
-            'color: #E8A838; font-size: 20px; font-weight: bold;'
-        );
-        console.log(
-            '%cThis portfolio is protected with comprehensive security measures.\nAll inputs are sanitized and validated.\n\n— Dharshana Portfolio Security',
-            'color: #14532d; font-size: 14px;'
-        );
-    };
-    devToolsWarning();
-
     // Disable drag on images
     document.querySelectorAll('img').forEach(img => {
         img.addEventListener('dragstart', (e) => e.preventDefault());
     });
+
+    // ── CSP Violation Reporting ──
+    // Logs any Content-Security-Policy violations for debugging/monitoring
+    document.addEventListener('securitypolicyviolation', (e) => {
+        console.warn(
+            '[CSP Violation]',
+            'Directive:', e.violatedDirective,
+            '| Blocked URI:', e.blockedURI,
+            '| Source:', e.sourceFile, 'line', e.lineNumber
+        );
+    });
+
+    // ── Prevent window.opener attacks (reverse tabnabbing) ──
+    // Any programmatic window.open gets noopener protection
+    const _nativeOpen = window.open;
+    window.open = function (url, target, features) {
+        const newWindow = _nativeOpen.call(window, url, target, features);
+        if (newWindow) {
+            try { newWindow.opener = null; } catch (e) { /* cross-origin — already safe */ }
+        }
+        return newWindow;
+    };
+
+    // ── Global Error Handlers ──
+    // Catch and log unhandled errors without exposing details to the user
+    window.addEventListener('error', (event) => {
+        console.error('[Global Error]', event.message, event.filename, event.lineno);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('[Unhandled Promise Rejection]', event.reason);
+    });
+
+    // ── Dev Tools Security Notice ──
+    console.log(
+        '%c⚠ Security Notice',
+        'color: #E8A838; font-size: 20px; font-weight: bold;'
+    );
+    console.log(
+        '%cThis portfolio is protected with comprehensive security measures.\nAll inputs are sanitized and validated.\nCSRF tokens, rate limiting, honeypot, timing checks, and CSP are active.\n\n— Dharshana Portfolio Security',
+        'color: #14532d; font-size: 14px;'
+    );
 
 })();

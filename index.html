@@ -12,7 +12,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:5000; frame-ancestors 'none'; base-uri 'self'; form-action 'self' http://localhost:5000; upgrade-insecure-requests;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:5000; frame-ancestors 'none'; base-uri 'self'; form-action 'self' http://localhost:5000; upgrade-insecure-requests;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="Permissions-Policy"
@@ -22,6 +22,7 @@
 
     <!-- Remix Icons -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"
+        integrity="sha384-hlyh3bZtgya52o/xl1sa3jb1Hv8UW8lsNRB1mlJM26/nlx1S1J7zVBZMOjkKl+MU"
         crossorigin="anonymous">
 
     <!-- Custom CSS -->
@@ -677,7 +678,7 @@
                 <!-- Contact Form -->
                 <form class="contact_form" id="contact-form" novalidate>
                     <!-- CSRF Token -->
-                    <input type="hidden" id="csrf_token" name="csrf_token" value="">
+                    <input type="hidden" id="csrf_token" name="csrf_token" value="" autocomplete="off">
                     <!-- Honeypot -->
                     <div class="hp_field" aria-hidden="true">
                         <label for="hp_website">Website</label>
