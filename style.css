@@ -1724,6 +1724,16 @@ section:nth-child(even) {
     font-weight: 600;
 }
 
+.human_verify_widget.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
 .submit_btn {
     width: 100%;
     padding: 16px 28px;
@@ -1778,6 +1788,7 @@ section:nth-child(even) {
     opacity: 0;
     height: 0;
     overflow: hidden;
+    pointer-events: none;
 }
 
 /* ══════════════════════════════════════
@@ -2342,6 +2353,15 @@ footer {
     z-index: 3000;
     transition: transform 0.4s var(--ease-out), opacity 0.4s;
     opacity: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast i {
+    font-size: 1.15rem;
+    flex-shrink: 0;
 }
 
 .toast.show {
