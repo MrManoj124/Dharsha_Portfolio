@@ -12,12 +12,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:5000; frame-ancestors 'none'; base-uri 'self'; form-action 'self' http://localhost:5000; upgrade-insecure-requests;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:5000; object-src 'none'; base-uri 'self'; form-action 'self' http://localhost:5000; upgrade-insecure-requests;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="Permissions-Policy"
-        content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()">
     <meta name="permissions-policy"
+        content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()">
+    <meta http-equiv="Permissions-Policy"
         content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()">
 
     <title>Dharshana | Project Manager Portfolio</title>
@@ -681,10 +681,12 @@
                 <form class="contact_form" id="contact-form" novalidate>
                     <!-- CSRF Token -->
                     <input type="hidden" id="csrf_token" name="csrf_token" value="" autocomplete="off">
-                    <!-- Honeypot -->
+                    <!-- Honeypot — invisible to real users, traps automated bots -->
                     <div class="hp_field" aria-hidden="true">
-                        <label for="hp_website">Website</label>
+                        <label for="hp_website">Leave this blank</label>
                         <input type="text" id="hp_website" name="website" tabindex="-1" autocomplete="off">
+                        <label for="website_url">Leave this blank</label>
+                        <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off">
                     </div>
 
                     <div class="form_group">
@@ -881,7 +883,7 @@
     </div>
 
     <!-- Toast Notification Container -->
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="alert" aria-live="polite"></div>
 
     <!-- JavaScript -->
     <script src="script.js"></script>

@@ -429,7 +429,7 @@ window.addEventListener('unhandledrejection', (event) => {
 - [x] CDN crossorigin attributes
 - [x] Global error handling
 - [x] Paste content scanning
-- [x] Add SRI hashes for CDN resources (production)
+- [ ] Add SRI hashes for CDN resources (production)
 - [ ] Enable HSTS on backend
 - [ ] Set up CORS properly on backend
 - [ ] Implement server-side rate limiting

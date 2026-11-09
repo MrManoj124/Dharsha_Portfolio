@@ -1641,6 +1641,18 @@ section:nth-child(even) {
     background: rgba(20, 83, 45, 0.04);
 }
 
+.human_verify_widget.shake {
+    animation: verifyShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    border-color: #dc2626;
+}
+
+@keyframes verifyShake {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+    40%, 60% { transform: translate3d(6px, 0, 0); }
+}
+
 .verify_checkbox_container {
     display: flex;
     align-items: center;
@@ -1724,16 +1736,6 @@ section:nth-child(even) {
     font-weight: 600;
 }
 
-.human_verify_widget.shake {
-    animation: shake 0.5s ease-in-out;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-8px); }
-    40%, 80% { transform: translateX(8px); }
-}
-
 .submit_btn {
     width: 100%;
     padding: 16px 28px;
@@ -1788,7 +1790,6 @@ section:nth-child(even) {
     opacity: 0;
     height: 0;
     overflow: hidden;
-    pointer-events: none;
 }
 
 /* ══════════════════════════════════════
@@ -2345,6 +2346,9 @@ footer {
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     padding: 14px 28px;
     border-radius: var(--border-radius-pill);
     font-size: 0.88rem;
@@ -2353,20 +2357,18 @@ footer {
     z-index: 3000;
     transition: transform 0.4s var(--ease-out), opacity 0.4s;
     opacity: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
     pointer-events: none;
-}
-
-.toast i {
-    font-size: 1.15rem;
-    flex-shrink: 0;
 }
 
 .toast.show {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
+    pointer-events: auto;
+}
+
+.toast i {
+    font-size: 1.15rem;
+    flex-shrink: 0;
 }
 
 .toast.success {

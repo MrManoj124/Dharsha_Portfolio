@@ -20,31 +20,40 @@
     'use strict';
 
     // ═══════════════════════════════════════
-    // SECURITY ARCHITECTURE & MANAGERS
+    // SECURITY MANAGER & UTILITIES
     // ═══════════════════════════════════════
-
-    /**
-     * SecurityManager provides centralized cryptographic token generation,
-     * HTML entity sanitization, malicious pattern detection (XSS/injection),
-     * and strict format validators.
-     */
-    class SecurityManager {
+    const SecurityManager = {
         /**
-         * Sanitize string to prevent XSS attacks via HTML entity encoding.
+         * Sanitize string to prevent XSS attacks.
+         * Encodes HTML special characters using DOM text nodes.
          */
-        static sanitizeInput(str) {
+        sanitizeHTML(str) {
             if (typeof str !== 'string') return '';
             const div = document.createElement('div');
-            div.appendChild(document.createTextNode(str));
+            div.textContent = str;
             return div.innerHTML;
-        }
+        },
 
         /**
-         * Comprehensive XSS and malicious pattern detector.
-         * Scans for script tags, pseudo-protocols, event handlers,
-         * dangerous objects/embeds, and injection vectors.
+         * Validate email format with strict RFC regex.
          */
-        static containsMaliciousPatterns(str) {
+        isValidEmail(email) {
+            const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+            return emailRegex.test(email) && email.length <= 255;
+        },
+
+        /**
+         * Validate name format (letters, spaces, hyphens, apostrophes only).
+         */
+        isValidName(name) {
+            const nameRegex = /^[a-zA-Z\s'-]{2,100}$/;
+            return nameRegex.test(name);
+        },
+
+        /**
+         * Detect known malicious patterns, code injections, and XSS attack vectors.
+         */
+        containsMaliciousPatterns(str) {
             if (typeof str !== 'string') return false;
             const patterns = [
                 /<script[^>]*>/i,
@@ -61,119 +70,78 @@
                 /<svg[^>]*on\w+/i
             ];
             return patterns.some(pattern => pattern.test(str));
-        }
+        },
 
         /**
-         * Cryptographically secure CSRF token generation (64-character hex).
+         * Generate a cryptographically secure CSRF token (64 hex characters).
          */
-        static generateCSRFToken() {
+        generateCSRFToken() {
             const array = new Uint8Array(32);
             window.crypto.getRandomValues(array);
             return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
         }
+    };
 
-        /**
-         * Validate name format (letters, spaces, hyphens, apostrophes, 2-100 chars).
-         */
-        static isValidName(name) {
-            if (typeof name !== 'string') return false;
-            const trimmed = name.trim();
-            return /^[a-zA-Z\s'-]{2,100}$/.test(trimmed);
-        }
-
-        /**
-         * Validate email format with strict RFC regex and max 255 chars.
-         */
-        static isValidEmail(email) {
-            if (typeof email !== 'string') return false;
-            const trimmed = email.trim();
-            const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-            return emailRegex.test(trimmed) && trimmed.length <= 255;
-        }
-    }
+    // Backward compatibility aliases
+    const sanitizeInput = SecurityManager.sanitizeHTML;
+    const isValidEmail = SecurityManager.isValidEmail;
+    const generateCSRFToken = SecurityManager.generateCSRFToken;
 
     /**
-     * Sliding-window client-side rate limiter.
-     * Restricts submissions per time window and calculates remaining cooldown.
+     * Sliding Window Rate Limiter
+     * Enforces max 3 submissions per 60-second window.
      */
-    class RateLimiter {
-        constructor(maxAttempts = 3, windowMs = 60000) {
-            this.maxAttempts = maxAttempts;
-            this.windowMs = windowMs;
-            this.attempts = [];
-        }
+    const RateLimiter = {
+        timestamps: [],
+        maxAttempts: 3,
+        windowMs: 60000,
 
         isAllowed() {
             const now = Date.now();
-            this.attempts = this.attempts.filter(t => now - t < this.windowMs);
-            return this.attempts.length < this.maxAttempts;
-        }
+            this.timestamps = this.timestamps.filter(t => now - t < this.windowMs);
+            if (this.timestamps.length >= this.maxAttempts) {
+                return false;
+            }
+            this.timestamps.push(now);
+            return true;
+        },
 
         getRetryAfterSeconds() {
-            const now = Date.now();
-            this.attempts = this.attempts.filter(t => now - t < this.windowMs);
-            if (this.attempts.length < this.maxAttempts) return 0;
-            const oldestInWindow = this.attempts[0];
-            return Math.max(1, Math.ceil((this.windowMs - (now - oldestInWindow)) / 1000));
-        }
-
-        recordAttempt() {
-            this.attempts.push(Date.now());
-        }
-    }
-
-    /**
-     * Timing & Physical User Interaction Tracker (Anti-Bot).
-     * Bots submit forms instantaneously and without genuine pointer/keyboard events.
-     */
-    const TimingAndInteractionProtection = {
-        formLoadTime: Date.now(),
-        minSubmitTimeMs: 3000,
-        hasInteracted: false,
-        init() {
-            const markInteraction = () => {
-                this.hasInteracted = true;
-            };
-            window.addEventListener('keydown', markInteraction, { passive: true, once: true });
-            window.addEventListener('pointerdown', markInteraction, { passive: true, once: true });
-            window.addEventListener('touchstart', markInteraction, { passive: true, once: true });
-        },
-        isSuspiciouslyFast() {
-            return (Date.now() - this.formLoadTime) < this.minSubmitTimeMs;
-        },
-        hasNoInteraction() {
-            return !this.hasInteracted;
+            if (this.timestamps.length === 0) return 0;
+            const oldest = this.timestamps[0];
+            const diff = this.windowMs - (Date.now() - oldest);
+            return Math.max(1, Math.ceil(diff / 1000));
         }
     };
-    TimingAndInteractionProtection.init();
 
     /**
-     * Safe Toast Notification with XSS immunity.
-     * Uses createElement and textContent exclusively to prevent HTML injection.
+     * Secure notification system (zero innerHTML vulnerability).
      */
+    let toastTimer = null;
     function showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
         if (!toast) return;
-        toast.textContent = ''; // Clear previous content safely
 
+        // XSS defense: safely build DOM nodes without innerHTML
+        toast.textContent = '';
         const icon = document.createElement('i');
         icon.className = type === 'success' ? 'ri-check-line' : 'ri-error-warning-line';
-
         const span = document.createElement('span');
-        span.textContent = message; // strictly textContent, zero HTML injection
+        span.textContent = message;
 
         toast.appendChild(icon);
         toast.appendChild(span);
         toast.className = `toast ${type} show`;
 
-        clearTimeout(toast._timer);
-        toast._timer = setTimeout(() => {
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
             toast.classList.remove('show');
         }, 3500);
     }
+    const showNotification = showToast;
 
     /**
-     * Debounce utility function.
+     * Debounce function.
      */
     function debounce(fn, delay) {
         let timer;
@@ -184,9 +152,9 @@
     }
 
     // ═══════════════════════════════════════
-    // CSRF TOKEN INITIALIZATION
+    // CSRF TOKEN MANAGEMENT
     // ═══════════════════════════════════════
-    let csrfToken = SecurityManager.generateCSRFToken();
+    const csrfToken = SecurityManager.generateCSRFToken();
     const csrfInput = document.getElementById('csrf_token');
     if (csrfInput) {
         csrfInput.value = csrfToken;
@@ -194,8 +162,21 @@
     try {
         sessionStorage.setItem('csrf_token', csrfToken);
     } catch (e) {
-        // SessionStorage fallback
+        // SessionStorage unavailable
     }
+
+    // Record form load time for bot-detection timing analysis
+    const formLoadTime = Date.now();
+    const MIN_HUMAN_FILL_TIME_MS = 3000;
+
+    // Track real user interactions (pointer/touch/keyboard) to detect headless bots
+    let hasUserInteracted = false;
+    function registerInteraction() {
+        hasUserInteracted = true;
+    }
+    window.addEventListener('pointerdown', registerInteraction, { once: true, passive: true });
+    window.addEventListener('keydown', registerInteraction, { once: true, passive: true });
+    window.addEventListener('touchstart', registerInteraction, { once: true, passive: true });
 
 
     // ═══════════════════════════════════════
@@ -464,101 +445,51 @@
 
 
     // ═══════════════════════════════════════
-    // CONTACT FORM — 8-GATE SECURITY PIPELINE
+    // CONTACT FORM — SECURITY & VALIDATION
     // ═══════════════════════════════════════
     const contactForm = document.getElementById('contact-form');
     const submitBtn = document.getElementById('submit-btn');
-    const formRateLimiter = new RateLimiter(3, 60000); // 3 submissions per 60 seconds
 
+    // ── 8-Gate Security Pipeline ──
     if (contactForm) {
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // ── Gate 1: Honeypot Anti-Bot Trap ──
-            const honeypot = document.getElementById('hp_website');
-            if (honeypot && honeypot.value.trim() !== '') {
-                // Automated bot detected — silently pretend success to prevent retry loops
+            // ── Security Gate 1: Honeypot Anti-Bot Traps ──
+            const honeypotA = document.getElementById('hp_website');
+            const honeypotB = document.getElementById('website_url');
+            if ((honeypotA && honeypotA.value.trim() !== '') || (honeypotB && honeypotB.value.trim() !== '')) {
+                // Bot detected — silently pretend success
                 showToast('Message sent successfully!', 'success');
                 contactForm.reset();
                 return;
             }
 
-            // ── Gate 2: Submission Timing Analysis ──
-            // Humans take at least 3 seconds to complete the form
-            if (TimingAndInteractionProtection.isSuspiciouslyFast()) {
-                showToast('Please take a moment to review before submitting.', 'error');
-                return;
-            }
-
-            // ── Gate 3: Physical Interaction Verification ──
-            // Rejects automated headless scripts with no user keyboard/pointer events
-            if (TimingAndInteractionProtection.hasNoInteraction()) {
+            // ── Security Gate 2: Submission Timing Analysis ──
+            const timeTaken = Date.now() - formLoadTime;
+            if (timeTaken < MIN_HUMAN_FILL_TIME_MS) {
+                // Submitted suspiciously fast (<3 seconds) — likely bot
                 showToast('Message sent successfully!', 'success');
                 contactForm.reset();
                 return;
             }
 
-            // ── Gate 4: Rate Limiting (Sliding Window) ──
-            if (!formRateLimiter.isAllowed()) {
-                const retrySec = formRateLimiter.getRetryAfterSeconds();
-                showToast(`Too many attempts. Please wait ${retrySec}s before submitting again.`, 'error');
+            // ── Security Gate 3: Interaction Verification Check ──
+            if (!hasUserInteracted) {
+                // No human click, touch, or keystroke occurred
+                showToast('Message sent successfully!', 'success');
+                contactForm.reset();
                 return;
             }
 
-            // ── Gate 5: Strict Input Validation ──
-            const nameInput = document.getElementById('name');
-            const emailInput = document.getElementById('email');
-            const messageInput = document.getElementById('message');
-            let isValid = true;
-
-            [nameInput, emailInput, messageInput].forEach(input => {
-                if (input) input.classList.remove('invalid');
-            });
-
-            const nameVal = nameInput ? nameInput.value.trim() : '';
-            if (!SecurityManager.isValidName(nameVal)) {
-                if (nameInput) nameInput.classList.add('invalid');
-                isValid = false;
-            }
-
-            const emailVal = emailInput ? emailInput.value.trim() : '';
-            if (!SecurityManager.isValidEmail(emailVal)) {
-                if (emailInput) emailInput.classList.add('invalid');
-                isValid = false;
-            }
-
-            const messageVal = messageInput ? messageInput.value.trim() : '';
-            if (!messageVal || messageVal.length < 10 || messageVal.length > 5000) {
-                if (messageInput) messageInput.classList.add('invalid');
-                isValid = false;
-            }
-
-            if (!isValid) {
-                showToast('Please check your entries (Valid name, email, and 10+ char message).', 'error');
+            // ── Security Gate 4: Sliding-Window Rate Limiting ──
+            if (!RateLimiter.isAllowed()) {
+                const retrySec = RateLimiter.getRetryAfterSeconds();
+                showToast(`Too many submissions. Please wait ${retrySec}s before trying again.`, 'error');
                 return;
             }
 
-            // ── Gate 6: Malicious Pattern Detection (XSS/Injection) ──
-            if (
-                SecurityManager.containsMaliciousPatterns(nameVal) ||
-                SecurityManager.containsMaliciousPatterns(emailVal) ||
-                SecurityManager.containsMaliciousPatterns(messageVal)
-            ) {
-                showToast('Security Alert: Prohibited script or HTML patterns detected.', 'error');
-                return;
-            }
-
-            // ── Gate 7: HumanGuard Interactive Verification ──
-            if (!humanVerified) {
-                showToast('Please complete the "Verify you are human" check first.', 'error');
-                if (verifyWidget) {
-                    verifyWidget.classList.add('shake');
-                    setTimeout(() => verifyWidget.classList.remove('shake'), 600);
-                }
-                return;
-            }
-
-            // ── Gate 8: CSRF Token Integrity Check ──
+            // ── Security Gate 5: CSRF Token Integrity Check ──
             const tokenInput = document.getElementById('csrf_token');
             let storedToken;
             try {
@@ -567,18 +498,70 @@
                 storedToken = csrfToken;
             }
             if (!tokenInput || !tokenInput.value || tokenInput.value !== storedToken) {
-                showToast('Security token mismatch. Please refresh the page.', 'error');
+                showToast('Security validation token mismatch. Please refresh the page.', 'error');
                 return;
             }
 
-            // ── Record rate limit attempt ──
-            formRateLimiter.recordAttempt();
+            // ── Security Gate 6: HumanGuard Verification ──
+            if (!humanVerified) {
+                showToast('Please complete the human verification checkbox first.', 'error');
+                if (verifyWidget) {
+                    verifyWidget.classList.add('shake');
+                    setTimeout(() => verifyWidget.classList.remove('shake'), 600);
+                }
+                return;
+            }
+
+            // ── Security Gate 7: Strict Input Validation ──
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const messageInput = document.getElementById('message');
+            let isValid = true;
+
+            // Clear previous errors
+            [nameInput, emailInput, messageInput].forEach(input => {
+                if (input) input.classList.remove('invalid');
+            });
+
+            // Name validation (strict character whitelist + length)
+            const nameVal = nameInput ? nameInput.value.trim() : '';
+            if (!nameVal || !SecurityManager.isValidName(nameVal)) {
+                if (nameInput) nameInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Email validation (RFC-compliant regex)
+            const emailVal = emailInput ? emailInput.value.trim() : '';
+            if (!emailVal || !SecurityManager.isValidEmail(emailVal)) {
+                if (emailInput) emailInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Message validation
+            const messageVal = messageInput ? messageInput.value.trim() : '';
+            if (!messageVal || messageVal.length < 10 || messageVal.length > 5000) {
+                if (messageInput) messageInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                showToast('Please correct the highlighted fields before sending.', 'error');
+                return;
+            }
+
+            // ── Security Gate 8: Malicious Pattern & Injection Detection ──
+            if (SecurityManager.containsMaliciousPatterns(nameVal) ||
+                SecurityManager.containsMaliciousPatterns(emailVal) ||
+                SecurityManager.containsMaliciousPatterns(messageVal)) {
+                showToast('Security alert: Disallowed code or script pattern detected.', 'error');
+                return;
+            }
 
             // ── Sanitize Inputs ──
             const sanitizedData = {
-                name: SecurityManager.sanitizeInput(nameVal),
-                email: SecurityManager.sanitizeInput(emailVal),
-                message: SecurityManager.sanitizeInput(messageVal),
+                name: SecurityManager.sanitizeHTML(nameVal),
+                email: SecurityManager.sanitizeHTML(emailVal),
+                message: SecurityManager.sanitizeHTML(messageVal),
                 csrf_token: tokenInput.value,
                 timestamp: new Date().toISOString()
             };
@@ -622,16 +605,16 @@
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
 
-                // Rotate CSRF token after every submission attempt
-                csrfToken = SecurityManager.generateCSRFToken();
-                if (tokenInput) tokenInput.value = csrfToken;
+                // Regenerate CSRF token
+                const newToken = SecurityManager.generateCSRFToken();
+                if (tokenInput) tokenInput.value = newToken;
                 try {
-                    sessionStorage.setItem('csrf_token', csrfToken);
-                } catch (e) { /* SessionStorage fallback */ }
+                    sessionStorage.setItem('csrf_token', newToken);
+                } catch (e) { /* no-op */ }
             }
         });
 
-        // Real-time validation & Paste Scanning
+        // Real-time validation feedback & Defense-in-depth listeners
         const formInputs = contactForm.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), textarea');
         formInputs.forEach(input => {
             input.addEventListener('blur', () => {
@@ -649,19 +632,19 @@
                     }
                 }
 
-                // Defense-in-depth: JS-level maxlength enforcement
+                // JS-level maxlength enforcement (defense-in-depth)
                 const maxLen = parseInt(input.getAttribute('maxlength'), 10);
                 if (maxLen && input.value.length > maxLen) {
                     input.value = input.value.slice(0, maxLen);
                 }
             });
 
-            // ── Paste Scanning (Layer 11) ──
+            // Paste scanning — block malicious injection attempts via clipboard
             input.addEventListener('paste', (e) => {
-                const pastedText = (e.clipboardData || window.clipboardData)?.getData('text') || '';
-                if (SecurityManager.containsMaliciousPatterns(pastedText)) {
+                const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+                if (SecurityManager.containsMaliciousPatterns(pasteData)) {
                     e.preventDefault();
-                    showToast('Security Alert: Malicious pattern detected in pasted content.', 'error');
+                    showToast('Security Alert: Pasted content contained disallowed code patterns.', 'error');
                 }
             });
         });
@@ -692,48 +675,43 @@
 
 
     // ═══════════════════════════════════════
-    // ADDITIONAL SECURITY ENFORCEMENTS
+    // ADDITIONAL SECURITY MEASURES
     // ═══════════════════════════════════════
 
-    // ── Layer 9: External Link Safety & MutationObserver ──
-    const ExternalLinkProtector = {
-        protectLink(anchor) {
-            if (anchor.getAttribute('target') === '_blank') {
-                const relVal = anchor.getAttribute('rel') || '';
-                const parts = relVal.split(/\s+/).filter(Boolean);
-                if (!parts.includes('noopener')) parts.push('noopener');
-                if (!parts.includes('noreferrer')) parts.push('noreferrer');
-                anchor.setAttribute('rel', parts.join(' '));
-            }
-        },
-        init() {
-            document.querySelectorAll('a[target="_blank"]').forEach(this.protectLink);
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach(mutation => {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === Node.ELEMENT_NODE) {
-                            if (node.tagName === 'A') ExternalLinkProtector.protectLink(node);
-                            node.querySelectorAll?.('a[target="_blank"]').forEach(ExternalLinkProtector.protectLink);
-                        }
-                    });
-                });
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-        }
-    };
-    ExternalLinkProtector.init();
+    // ── Content Protection on Images ──
+    document.querySelectorAll('img').forEach(img => {
+        img.addEventListener('contextmenu', (e) => e.preventDefault());
+        img.addEventListener('dragstart', (e) => e.preventDefault());
+        img.setAttribute('draggable', 'false');
+    });
 
-    // ── Layer 10: Content & Asset Protection ──
-    const ContentProtection = {
-        init() {
-            document.querySelectorAll('img').forEach(img => {
-                img.setAttribute('draggable', 'false');
-                img.addEventListener('contextmenu', (e) => e.preventDefault());
-                img.addEventListener('dragstart', (e) => e.preventDefault());
+    // ── External Link Safety (Reverse Tabnabbing Defense) ──
+    function secureExternalLinks(root = document) {
+        root.querySelectorAll('a[target="_blank"]').forEach(link => {
+            const rel = (link.getAttribute('rel') || '').toLowerCase();
+            const rels = new Set(rel.split(/\s+/).filter(Boolean));
+            rels.add('noopener');
+            rels.add('noreferrer');
+            link.setAttribute('rel', Array.from(rels).join(' '));
+        });
+    }
+    secureExternalLinks();
+
+    // Observe dynamically inserted links to guarantee noopener/noreferrer
+    const linkObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+                        secureExternalLinks(node.parentElement || document);
+                    } else if (node.querySelectorAll) {
+                        secureExternalLinks(node);
+                    }
+                }
             });
-        }
-    };
-    ContentProtection.init();
+        });
+    });
+    linkObserver.observe(document.body, { childList: true, subtree: true });
 
     // ── CSP Violation Reporting ──
     document.addEventListener('securitypolicyviolation', (e) => {
@@ -745,12 +723,12 @@
         );
     });
 
-    // ── Prevent window.opener attacks (reverse tabnabbing) ──
+    // ── Prevent window.opener attacks ──
     const _nativeOpen = window.open;
     window.open = function (url, target, features) {
         const newWindow = _nativeOpen.call(window, url, target, features);
         if (newWindow) {
-            try { newWindow.opener = null; } catch (e) { /* cross-origin — safe */ }
+            try { newWindow.opener = null; } catch (e) { /* cross-origin — already safe */ }
         }
         return newWindow;
     };
@@ -764,16 +742,14 @@
         console.error('[Unhandled Promise Rejection]', event.reason);
     });
 
-    // ── Console Security Indicator (SECURITY.md §18) ──
+    // ── Dev Tools Security Indicator ──
     console.log(
-        '%c🛡️ Security Layer Active\n' +
-        '%c  ✓ CSP Headers  ✓ CSRF Protection  ✓ XSS Prevention\n' +
-        '  ✓ Rate Limiter  ✓ Honeypot Trap  ✓ Timing Analysis\n' +
-        '  ✓ External Link Safety  ✓ Content Protection\n' +
-        '  ✓ Malicious Pattern Detection  ✓ Paste Scanning\n' +
-        '  ✓ HumanGuard Verification  ✓ Input Sanitization',
-        'color: #14532d; font-size: 16px; font-weight: bold;',
-        'color: #166534; font-size: 12px; font-family: monospace;'
+        '%c🛡️ Security Layer Active',
+        'color: #14532d; font-size: 18px; font-weight: bold; background: #FFF8E7; padding: 4px 8px; border-radius: 4px; border: 1px solid #E8A838;'
+    );
+    console.log(
+        '%c  ✓ Content Security Policy (CSP)\n  ✓ CSRF Token Protection (Gate 5)\n  ✓ XSS Sanitization & Pattern Detection (Gate 8)\n  ✓ Rate Limiter Sliding Window (Gate 4)\n  ✓ Honeypot Anti-Bot Traps (Gate 1)\n  ✓ Submission Timing Analysis (Gate 2)\n  ✓ Interaction Verification (Gate 3)\n  ✓ HumanGuard Checkbox (Gate 6)\n  ✓ External Link Safety (rel=noopener)\n  ✓ Paste Scanning & Maxlength Defense',
+        'color: #1a6b3c; font-size: 12px; line-height: 1.6;'
     );
 
 })();
