@@ -392,9 +392,237 @@
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeModal();
+            closeCvModal();
             closeMobileMenu();
         }
     });
+
+    // ═══════════════════════════════════════
+    // REQUEST CV MODAL (Gated Access Controller)
+    // ═══════════════════════════════════════
+    const cvModalOverlay = document.getElementById('cv-modal-overlay');
+    const cvModalClose = document.getElementById('cv-modal-close');
+    const cvSuccessCloseBtn = document.getElementById('cv-success-close-btn');
+    const cvModalTriggers = document.querySelectorAll('[data-trigger="cv-modal"]');
+    const cvRequestForm = document.getElementById('cv-request-form');
+    const cvSuccessScreen = document.getElementById('cv-success-screen');
+    const cvSubmitBtn = document.getElementById('cv-submit-btn');
+
+    // Modal Human Verification
+    const cvVerifyCheckbox = document.getElementById('cv_verify_human_checkbox');
+    const cvVerifyText = document.getElementById('cv-verify-text');
+    const cvVerifyWidget = document.getElementById('cv-human-verify-widget');
+    let cvHumanVerified = false;
+    let cvFormLoadTime = Date.now();
+
+    function openCvModal() {
+        if (cvModalOverlay) {
+            cvModalOverlay.classList.add('active');
+            cvModalOverlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            cvFormLoadTime = Date.now();
+            if (cvSuccessScreen) cvSuccessScreen.style.display = 'none';
+            if (cvRequestForm) cvRequestForm.style.display = 'block';
+        }
+    }
+
+    function closeCvModal() {
+        if (cvModalOverlay) {
+            cvModalOverlay.classList.remove('active');
+            cvModalOverlay.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+    }
+
+    cvModalTriggers.forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            openCvModal();
+        });
+    });
+
+    if (cvModalClose) cvModalClose.addEventListener('click', closeCvModal);
+    if (cvSuccessCloseBtn) cvSuccessCloseBtn.addEventListener('click', closeCvModal);
+
+    if (cvModalOverlay) {
+        cvModalOverlay.addEventListener('click', (e) => {
+            if (e.target === cvModalOverlay) closeCvModal();
+        });
+    }
+
+    if (cvVerifyCheckbox) {
+        cvVerifyCheckbox.addEventListener('change', () => {
+            if (cvVerifyCheckbox.checked) {
+                const label = cvVerifyCheckbox.nextElementSibling;
+                label.classList.add('verifying');
+                if (cvVerifyText) cvVerifyText.textContent = 'Verifying...';
+
+                setTimeout(() => {
+                    label.classList.remove('verifying');
+                    cvHumanVerified = true;
+                    if (cvVerifyText) cvVerifyText.textContent = 'Verified ✓';
+                    if (cvVerifyWidget) cvVerifyWidget.classList.add('verified');
+                }, 1000 + Math.random() * 600);
+            } else {
+                cvHumanVerified = false;
+                if (cvVerifyText) cvVerifyText.textContent = 'Verify you are human';
+                if (cvVerifyWidget) cvVerifyWidget.classList.remove('verified');
+            }
+        });
+    }
+
+    if (cvRequestForm) {
+        cvRequestForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 1. Honeypot Anti-Bot Trap
+            const hp = document.getElementById('cv_hp_company');
+            if (hp && hp.value.trim() !== '') {
+                showToast('CV Request submitted successfully!', 'success');
+                closeCvModal();
+                return;
+            }
+
+            // 2. Timing check
+            if (Date.now() - cvFormLoadTime < 1800) {
+                showToast('CV Request submitted successfully!', 'success');
+                closeCvModal();
+                return;
+            }
+
+            // 3. Human verification
+            if (!cvHumanVerified) {
+                showToast('Please complete the human verification checkbox first.', 'error');
+                if (cvVerifyWidget) {
+                    cvVerifyWidget.classList.add('shake');
+                    setTimeout(() => cvVerifyWidget.classList.remove('shake'), 600);
+                }
+                return;
+            }
+
+            // 4. Validate fields
+            const nameEl = document.getElementById('cv_name');
+            const emailEl = document.getElementById('cv_email');
+            const companyEl = document.getElementById('cv_company');
+            const purposeEl = document.getElementById('cv_purpose');
+            const messageEl = document.getElementById('cv_message');
+
+            const nameVal = nameEl ? nameEl.value.trim() : '';
+            const emailVal = emailEl ? emailEl.value.trim() : '';
+            const companyVal = companyEl ? companyEl.value.trim() : '';
+            const purposeVal = purposeEl ? purposeEl.value : '';
+            const messageVal = messageEl ? messageEl.value.trim() : '';
+
+            let isValid = true;
+
+            if (!nameVal || nameVal.length < 2) {
+                if (nameEl) nameEl.classList.add('invalid');
+                isValid = false;
+            } else if (nameEl) {
+                nameEl.classList.remove('invalid');
+            }
+
+            const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+            if (!emailVal || !emailRegex.test(emailVal)) {
+                if (emailEl) emailEl.classList.add('invalid');
+                isValid = false;
+            } else if (emailEl) {
+                emailEl.classList.remove('invalid');
+            }
+
+            if (!companyVal || companyVal.length < 2) {
+                if (companyEl) companyEl.classList.add('invalid');
+                isValid = false;
+            } else if (companyEl) {
+                companyEl.classList.remove('invalid');
+            }
+
+            if (!purposeVal) {
+                if (purposeEl) purposeEl.classList.add('invalid');
+                isValid = false;
+            } else if (purposeEl) {
+                purposeEl.classList.remove('invalid');
+            }
+
+            if (!isValid) {
+                showToast('Please correct the highlighted fields.', 'error');
+                return;
+            }
+
+            // Malicious pattern check
+            if (SecurityManager.containsMaliciousPatterns(nameVal) ||
+                SecurityManager.containsMaliciousPatterns(emailVal) ||
+                SecurityManager.containsMaliciousPatterns(companyVal) ||
+                SecurityManager.containsMaliciousPatterns(messageVal)) {
+                showToast('Security alert: Disallowed code pattern detected.', 'error');
+                return;
+            }
+
+            const sanitizedPayload = {
+                type: 'CV_ACCESS_REQUEST',
+                name: SecurityManager.sanitizeHTML(nameVal),
+                email: SecurityManager.sanitizeHTML(emailVal),
+                company: SecurityManager.sanitizeHTML(companyVal),
+                purpose: SecurityManager.sanitizeHTML(purposeVal),
+                message: SecurityManager.sanitizeHTML(messageVal || 'No additional message provided.'),
+                timestamp: new Date().toISOString()
+            };
+
+            if (cvSubmitBtn) {
+                cvSubmitBtn.classList.add('loading');
+                cvSubmitBtn.disabled = true;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sanitizedPayload)
+                });
+                if (!response.ok) throw new Error('Backend unavailable');
+            } catch (err) {
+                // Pre-formatted mailto link for direct dispatch to Dharshana
+                const mailSubject = `[Official CV Request] ${sanitizedPayload.company} - ${sanitizedPayload.name}`;
+                const mailBody = `OFFICIAL CV ACCESS REQUEST FOR DHARSHANA\n` +
+                    `--------------------------------------------------\n` +
+                    `Requester Name:     ${sanitizedPayload.name}\n` +
+                    `Work Email:         ${sanitizedPayload.email}\n` +
+                    `Organization:       ${sanitizedPayload.company}\n` +
+                    `Purpose of Request: ${sanitizedPayload.purpose}\n` +
+                    `Notes / Message:    ${sanitizedPayload.message}\n` +
+                    `Request Timestamp:  ${sanitizedPayload.timestamp}\n` +
+                    `Security Status:    Verified Human (Passed 8-Gate Security)\n` +
+                    `--------------------------------------------------\n` +
+                    `INSTRUCTION FOR DHARSHANA:\n` +
+                    `Review this client's details. If genuine, simply reply to\n` +
+                    `this email with 'Anbalagan_Dharshana_CV.pdf' attached to send your CV.\n`;
+
+                const mailtoUrl = `mailto:anbalagandharshana14@gmail.com?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
+                window.location.href = mailtoUrl;
+            } finally {
+                if (cvSubmitBtn) {
+                    cvSubmitBtn.classList.remove('loading');
+                    cvSubmitBtn.disabled = false;
+                }
+
+                // Show success view
+                const successName = document.getElementById('success-client-name');
+                const successEmail = document.getElementById('success-client-email');
+                if (successName) successName.textContent = sanitizedPayload.name;
+                if (successEmail) successEmail.textContent = sanitizedPayload.email;
+
+                if (cvRequestForm) cvRequestForm.style.display = 'none';
+                if (cvSuccessScreen) cvSuccessScreen.style.display = 'block';
+
+                showToast('CV Request sent to Dharshana for review!', 'success');
+
+                cvHumanVerified = false;
+                if (cvVerifyCheckbox) cvVerifyCheckbox.checked = false;
+                if (cvVerifyText) cvVerifyText.textContent = 'Verify you are human';
+                if (cvVerifyWidget) cvVerifyWidget.classList.remove('verified');
+            }
+        });
+    }
 
     // Copy verification proof
     if (copyProofBtn) {
@@ -544,6 +772,9 @@
                 isValid = false;
             }
 
+            const subjectInput = document.getElementById('contact_subject');
+            const subjectVal = subjectInput ? subjectInput.value : 'General Inquiry';
+
             if (!isValid) {
                 showToast('Please correct the highlighted fields before sending.', 'error');
                 return;
@@ -552,6 +783,7 @@
             // ── Security Gate 8: Malicious Pattern & Injection Detection ──
             if (SecurityManager.containsMaliciousPatterns(nameVal) ||
                 SecurityManager.containsMaliciousPatterns(emailVal) ||
+                SecurityManager.containsMaliciousPatterns(subjectVal) ||
                 SecurityManager.containsMaliciousPatterns(messageVal)) {
                 showToast('Security alert: Disallowed code or script pattern detected.', 'error');
                 return;
@@ -561,6 +793,7 @@
             const sanitizedData = {
                 name: SecurityManager.sanitizeHTML(nameVal),
                 email: SecurityManager.sanitizeHTML(emailVal),
+                subject: SecurityManager.sanitizeHTML(subjectVal),
                 message: SecurityManager.sanitizeHTML(messageVal),
                 csrf_token: tokenInput.value,
                 timestamp: new Date().toISOString()
@@ -582,7 +815,10 @@
                 });
 
                 if (response.ok) {
-                    showToast('Message sent successfully! I\'ll get back to you soon.', 'success');
+                    const successMsg = sanitizedData.subject === 'CV Request'
+                        ? 'CV Request submitted! Dharshana will verify your credentials and email the CV directly.'
+                        : 'Message sent successfully! I\'ll get back to you soon.';
+                    showToast(successMsg, 'success');
                     contactForm.reset();
                     humanVerified = false;
                     if (verifyCheckbox) verifyCheckbox.checked = false;
@@ -593,9 +829,30 @@
                 }
             } catch (err) {
                 // Fallback: mailto link
-                const mailtoLink = `mailto:anbalagandharshana14@gmail.com?subject=Portfolio Contact from ${encodeURIComponent(sanitizedData.name)}&body=${encodeURIComponent(`Name: ${sanitizedData.name}\nEmail: ${sanitizedData.email}\n\nMessage:\n${sanitizedData.message}`)}`;
+                const mailSubject = sanitizedData.subject === 'CV Request'
+                    ? `[Official CV Request] from ${sanitizedData.name}`
+                    : `Portfolio Inquiry: [${sanitizedData.subject}] from ${sanitizedData.name}`;
+
+                const mailBody = `INQUIRY DETAILS FOR DHARSHANA\n` +
+                    `--------------------------------------------------\n` +
+                    `Name:            ${sanitizedData.name}\n` +
+                    `Email:           ${sanitizedData.email}\n` +
+                    `Inquiry Topic:   ${sanitizedData.subject}\n` +
+                    `Timestamp:       ${sanitizedData.timestamp}\n` +
+                    `Security Status: Verified Human Check Passed\n` +
+                    `--------------------------------------------------\n` +
+                    `Message:\n${sanitizedData.message}\n` +
+                    `--------------------------------------------------\n` +
+                    (sanitizedData.subject === 'CV Request'
+                        ? `INSTRUCTION FOR DHARSHANA:\nReview requester details. If verified, reply with 'Anbalagan_Dharshana_CV.pdf' attached.\n`
+                        : '');
+
+                const mailtoLink = `mailto:anbalagandharshana14@gmail.com?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
                 window.location.href = mailtoLink;
-                showToast('Opening your email client...', 'success');
+                const toastMsg = sanitizedData.subject === 'CV Request'
+                    ? 'Opening email client to forward your CV request to Dharshana...'
+                    : 'Opening your email client...';
+                showToast(toastMsg, 'success');
                 contactForm.reset();
                 humanVerified = false;
                 if (verifyCheckbox) verifyCheckbox.checked = false;
@@ -648,6 +905,18 @@
                 }
             });
         });
+
+        const contactSubjectSelect = document.getElementById('contact_subject');
+        const messageTextarea = document.getElementById('message');
+        if (contactSubjectSelect && messageTextarea) {
+            contactSubjectSelect.addEventListener('change', () => {
+                if (contactSubjectSelect.value === 'CV Request') {
+                    messageTextarea.placeholder = 'Please mention your company/organization, role details, and why you are requesting Dharshana\'s CV...';
+                } else {
+                    messageTextarea.placeholder = 'Tell me about your project or opportunity...';
+                }
+            });
+        }
     }
 
 

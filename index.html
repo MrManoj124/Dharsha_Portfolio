@@ -226,15 +226,16 @@
                     </div>
                 </div>
                 <div class="about_actions">
-                        <a href="Anbalagan_Dharshana_CV.pdf" download="Anbalagan_Dharshana_CV.pdf" target="_blank"
-                            rel="noopener noreferrer" class="btn_download">
-                            <i class="ri-download-2-line"></i> Download CV
-                        </a>
-                            <a href="Anbalagan_Dharshana_CV.pdf" download="Anbalagan_Dharshana_CV.pdf" target="_blank"
-                                rel="noopener noreferrer" class="btn_download_circle" aria-label="Download CV">
-                                <i class="ri-arrow-right-line"></i>
-                            </a>
-                            <span class="about_signature">Dharshana</span>
+                    <button type="button" class="btn_download" id="btn-request-cv" data-trigger="cv-modal">
+                        <i class="ri-shield-user-line"></i> Request CV
+                    </button>
+                    <button type="button" class="btn_download_circle" id="btn-request-cv-circle" data-trigger="cv-modal" aria-label="Request CV">
+                        <i class="ri-arrow-right-line"></i>
+                    </button>
+                    <span class="about_signature">Dharshana</span>
+                </div>
+                <div class="cv_badge_note">
+                    <i class="ri-shield-check-line"></i> Verified Client Access • Personally reviewed & sent by Dharshana
                 </div>
 
                 <!-- Verified by Human Trust Box -->
@@ -692,6 +693,16 @@
                         <div class="form_error" id="email-error">Please enter a valid email</div>
                     </div>
                     <div class="form_group">
+                        <label for="contact_subject">Inquiry Type / Purpose</label>
+                        <select id="contact_subject" name="subject" class="form_select">
+                            <option value="General Inquiry">💬 General Inquiry</option>
+                            <option value="CV Request">📄 Request Official CV (Author Review Required)</option>
+                            <option value="Job Opportunity">💼 Job Opportunity / Hiring</option>
+                            <option value="Project Collaboration">🤝 Project Collaboration</option>
+                            <option value="Consulting">💡 Consulting / Advisory</option>
+                        </select>
+                    </div>
+                    <div class="form_group">
                         <label for="message">Your Message</label>
                         <textarea id="message" name="message" required maxlength="5000"
                             placeholder="Tell me about your project or opportunity..." autocomplete="off"></textarea>
@@ -782,6 +793,137 @@
             </div>
         </div>
     </footer>
+
+    <!-- ═══════════════════════════════
+         REQUEST CV MODAL (Gated Access)
+         ═══════════════════════════════ -->
+    <div class="verified_modal_overlay" id="cv-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true"
+        aria-labelledby="cv-modal-title">
+        <div class="verified_modal_card cv_modal_card">
+            <button class="modal_close_btn" id="cv-modal-close" aria-label="Close modal">
+                <i class="ri-close-line"></i>
+            </button>
+
+            <div class="modal_header">
+                <div class="modal_seal_icon">
+                    <i class="ri-file-shield-2-fill"></i>
+                </div>
+                <div class="modal_title_group">
+                    <span class="modal_badge_tag">VERIFIED CLIENT ACCESS</span>
+                    <h3 id="cv-modal-title">Request Official CV</h3>
+                    <p class="modal_subtitle">Anbalagan Dharshana • BBM (Hons) in Project Management</p>
+                </div>
+                <span class="modal_status_pill"><i class="ri-shield-check-fill"></i> AUTHOR REVIEW</span>
+            </div>
+
+            <div class="modal_body">
+                <div class="cv_protection_banner">
+                    <i class="ri-information-line"></i>
+                    <div>
+                        <strong>Privacy & Authenticity Protection</strong>
+                        <p>To protect personal phone numbers, home address, and academic references from scrapers and spam, Dharshana personally verifies each request. Once confirmed, the full CV will be emailed directly to you.</p>
+                    </div>
+                </div>
+
+                <form id="cv-request-form" class="cv_request_form" novalidate>
+                    <!-- Anti-Bot Honeypot -->
+                    <div class="hp_field" aria-hidden="true">
+                        <label for="cv_hp_company">Leave blank</label>
+                        <input type="text" id="cv_hp_company" name="cv_hp_company" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <div class="form_group">
+                        <label for="cv_name">Your Full Name <span class="required_star">*</span></label>
+                        <input type="text" id="cv_name" name="cv_name" required maxlength="100" placeholder="e.g. Sarah Jenkins" autocomplete="name">
+                        <div class="form_error" id="cv-name-error">Please enter your full name</div>
+                    </div>
+
+                    <div class="form_group">
+                        <label for="cv_email">Your Work / Professional Email <span class="required_star">*</span></label>
+                        <input type="email" id="cv_email" name="cv_email" required maxlength="255" placeholder="e.g. sarah@company.com" autocomplete="email">
+                        <div class="form_error" id="cv-email-error">Please enter a valid email address where Dharshana can send the CV</div>
+                    </div>
+
+                    <div class="form_row_grid">
+                        <div class="form_group">
+                            <label for="cv_company">Organization / Company <span class="required_star">*</span></label>
+                            <input type="text" id="cv_company" name="cv_company" required maxlength="120" placeholder="e.g. Apex Consulting / NGO" autocomplete="organization">
+                            <div class="form_error" id="cv-company-error">Please enter your organization</div>
+                        </div>
+                        <div class="form_group">
+                            <label for="cv_purpose">Purpose of Request <span class="required_star">*</span></label>
+                            <select id="cv_purpose" name="cv_purpose" required>
+                                <option value="" disabled selected>Select purpose...</option>
+                                <option value="Hiring / Recruitment (Project Manager role)">Hiring / Recruitment</option>
+                                <option value="Project Consulting / Contract">Project Consulting / Contract</option>
+                                <option value="Academic / Research Evaluation">Academic / Research Evaluation</option>
+                                <option value="Partnership / Professional Network">Partnership / Networking</option>
+                                <option value="Other Legitimate Inquiry">Other Legitimate Inquiry</option>
+                            </select>
+                            <div class="form_error" id="cv-purpose-error">Please select a purpose</div>
+                        </div>
+                    </div>
+
+                    <div class="form_group">
+                        <label for="cv_message">Brief Note / Role Requirements <span class="optional_label">(Optional)</span></label>
+                        <textarea id="cv_message" name="cv_message" rows="3" maxlength="1000" placeholder="e.g., We are recruiting for a Project Coordinator role with agile experience..."></textarea>
+                    </div>
+
+                    <!-- Human Verification Widget for Modal -->
+                    <div class="human_verify_widget" id="cv-human-verify-widget">
+                        <div class="verify_checkbox_container">
+                            <input type="checkbox" id="cv_verify_human_checkbox" class="verify_checkbox">
+                            <label for="cv_verify_human_checkbox" class="verify_label">
+                                <span class="custom_checkbox_box">
+                                    <i class="ri-check-line check_icon"></i>
+                                    <span class="verify_spinner"></span>
+                                </span>
+                                <span class="verify_text" id="cv-verify-text">Verify you are human</span>
+                            </label>
+                        </div>
+                        <div class="verify_brand">
+                            <i class="ri-shield-user-line"></i>
+                            <span>HumanGuard</span>
+                        </div>
+                    </div>
+
+                    <div class="modal_actions">
+                        <button type="submit" class="submit_btn" id="cv-submit-btn">
+                            <span>Send CV Request to Dharshana</span>
+                            <i class="ri-send-plane-2-line"></i>
+                            <div class="spinner"></div>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Success State Screen (Shown after submit) -->
+                <div class="cv_success_screen" id="cv-success-screen" style="display: none;">
+                    <div class="success_icon_circle">
+                        <i class="ri-checkbox-circle-fill"></i>
+                    </div>
+                    <h4>CV Request Successfully Forwarded!</h4>
+                    <p>
+                        Thank you, <strong id="success-client-name"></strong>. Your details have been transmitted directly to <strong>Anbalagan Dharshana</strong>.
+                    </p>
+                    <div class="success_steps_card">
+                        <div class="step_row">
+                            <span class="step_num">1</span>
+                            <span>Dharshana receives your verified request at <code>anbalagandharshana14@gmail.com</code>.</span>
+                        </div>
+                        <div class="step_row">
+                            <span class="step_num">2</span>
+                            <span>She verifies your organization and inquiry details to confirm authenticity.</span>
+                        </div>
+                        <div class="step_row">
+                            <span class="step_num">3</span>
+                            <span>The complete, official CV PDF will be sent straight to <strong id="success-client-email"></strong>.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn_secondary_close" id="cv-success-close-btn">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ═══════════════════════════════
          VERIFIED BY HUMAN MODAL

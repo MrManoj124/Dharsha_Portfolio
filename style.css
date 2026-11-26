@@ -2844,9 +2844,189 @@ footer {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+select:focus-visible {
     outline: 3px solid var(--gold-primary);
     outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════
+   GATED CV ACCESS / REQUEST MODAL STYLES
+   ══════════════════════════════════════ */
+.cv_badge_note {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cv_badge_note i {
+    color: var(--green-dark);
+    font-size: 1rem;
+}
+
+.form_group select,
+.form_select {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    background: var(--gray-50);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.form_group select:focus,
+.form_select:focus {
+    border-color: var(--green-dark);
+    box-shadow: 0 0 0 4px rgba(20, 83, 45, 0.1);
+    background: var(--white);
+}
+
+.form_group select.invalid {
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.08);
+}
+
+.form_group select.invalid + .form_error {
+    display: block;
+}
+
+.form_row_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 600px) {
+    .form_row_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cv_protection_banner {
+    background: var(--gray-50);
+    border-left: 4px solid var(--gold-primary);
+    padding: 14px 18px;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 22px;
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.cv_protection_banner i {
+    font-size: 1.3rem;
+    color: var(--gold-dark);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.cv_protection_banner strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.92rem;
+}
+
+.required_star {
+    color: #e53e3e;
+    font-weight: 700;
+}
+
+.optional_label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.modal_actions {
+    margin-top: 10px;
+}
+
+.cv_success_screen {
+    text-align: center;
+    padding: 24px 12px;
+}
+
+.success_icon_circle {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+    color: #16a34a;
+}
+
+.cv_success_screen h4 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.cv_success_screen p {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+
+.success_steps_card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-sm);
+    padding: 18px 20px;
+    text-align: left;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.step_row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.step_row .step_num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green-dark);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.step_row code {
+    background: var(--gray-100);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.82rem;
+    color: var(--green-dark);
 }
 
 /* Skip to content link */
